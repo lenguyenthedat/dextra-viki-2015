@@ -1,5 +1,4 @@
 from __future__ import division
-from sklearn.preprocessing import StandardScaler
 
 import pandas as pd
 import time
@@ -154,28 +153,6 @@ def jaccard(row):
 
 # This might take ~2.5 hours or more to finish.
 videos_matrix['jaccard'] = videos_matrix.apply(jaccard, axis=1)
-
-## ===================== Combined
-# Feature scaling:
-print "=> Feature scaling"
-print datetime.datetime.now()
-sim_features = ['sim_country','sim_language', 'sim_adult', 'sim_content_owner_id', 'sim_broadcast', 'sim_episode_count', 'sim_genres', 'sim_cast', 'jaccard']
-weight_features = [10,10,5,1,1,1,5,5,20]
-scaler = StandardScaler()
-for col in sim_features:
-    scaler.fit(list(videos_matrix[col]))
-    videos_matrix[col] = scaler.transform(videos_matrix[col])
-
-# Combined
-print "=> Combined weighted feature similarity"
-print datetime.datetime.now()
-def sim_combined(row):
-    score = 0
-    for i in range(0, len(sim_features)):
-        score += row[sim_features[i]]*weight_features[i]
-    return score
-    
-videos_matrix['sim_combined'] = videos_matrix.apply(sim_combined, axis=1)
 
 ## Output to CSV
 print "=> Out to CSV"

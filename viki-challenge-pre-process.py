@@ -1,24 +1,8 @@
 import pandas as pd
-import time
-import csv
-import numpy as np
-import os
-
-from sklearn.metrics import mean_squared_error, make_scorer
-from sklearn.ensemble import GradientBoostingRegressor, RandomForestRegressor
 from sklearn.preprocessing import LabelEncoder
-from sknn.mlp import Regressor, Layer
-from sklearn.grid_search import GridSearchCV
-from xgboost import XGBRegressor
 
 pd.options.mode.chained_assignment = None
 
-sample = True
-gridsearch = False
-
-features = ['user_id', 'video_id', 'mv_ratio', 'country', 'gender', 'container_id',
-            'origin_country', 'origin_language', 'adult', 'broadcast_from', 'broadcast_to',
-            'season_number', 'content_owner_id', 'genres', 'episode_count']
 features_non_numeric = ['country','gender','container_id', 'origin_country',
                         'origin_language','adult','broadcast_from','broadcast_to',
                         'season_number','content_owner_id','genres']
@@ -63,4 +47,3 @@ hot_videos = pd.merge(hot_videos, videos, on=['video_id'], suffixes=['_left', '_
 test_master = pd.merge(users, test_users, on='user_id', suffixes=['_left', '_right'])
 test_master = pd.merge(test_master, hot_videos, on='dummy', suffixes=['_left', '_right'])
 test_master.to_csv("./data/test.csv", sep=',', encoding='utf-8', index=False)
-

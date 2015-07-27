@@ -13,7 +13,29 @@ import re
 print "=> Reading data"
 print datetime.datetime.now()
 videos_matrix = pd.read_csv('./Data/videos_similarity_matrix.csv',sep='\t')
-behaviors = pd.read_csv('./Data/20150701094451-Behavior_training.csv') # for each user, work out the
+## ===================== Combined
+# Feature scaling:
+print "=> Feature scaling"
+print datetime.datetime.now()
+sim_features = ['sim_country','sim_language', 'sim_adult', 'sim_content_owner_id', 'sim_broadcast', 'sim_episode_count', 'sim_genres', 'sim_cast', 'jaccard']
+weight_features = [10,10,5,1,1,1,2,2,50]
+scaler = StandardScaler()
+for col in sim_features:
+    scaler.fit(list(videos_matrix[col]))
+    videos_matrix[col] = scaler.transform(videos_matrix[col])
+
+# Combined
+print "=> Combined weighted feature similarity"
+print datetime.datetime.now()
+def sim_combined(row):
+    score = 0
+    for i in range(0, len(sim_features)):
+        score += row[sim_features[i]]*weight_features[i]
+    return score
+
+videos_matrix['sim_combined'] = videos_matrix.apply(sim_combined, axis=1)
+
+behaviors = pd.read_csv('./Data/20150701094451-Behavior_training.csv')
 test = pd.read_csv('./Data/20150701094451-Sample_submission.csv')
 
 hot_videos = behaviors.groupby('video_id').agg(['count']).sort([('date_hour', 'count')], ascending=False).head(3).index.tolist()
@@ -53,4 +75,5 @@ for index, row in test.iterrows():
   # assign recommendation depending on ranking
   row['video_id'] = top3[previous_user_id_count-1]
   # print "-> Video ID#" + row['video_id']
-test.to_csv("./data/submit.csv", sep=',', encoding='utf-8', index=False)
+if not os.path.exists('result/'): os.makedirs('result/')
+test.to_csv('./result/submit-'+'-'.join(str(x) for x in weight_features)+'.csv', sep=',', encoding='utf-8', index=False)

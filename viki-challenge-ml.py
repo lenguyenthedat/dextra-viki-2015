@@ -4,9 +4,8 @@ import csv
 import numpy as np
 import os
 
-from sklearn.metrics import mean_squared_error, make_scorer
+from sklearn.metrics import mean_squared_error
 from sklearn.ensemble import GradientBoostingRegressor, RandomForestRegressor
-from sklearn.preprocessing import LabelEncoder
 from sknn.mlp import Regressor, Layer
 from sklearn.grid_search import GridSearchCV
 from xgboost import XGBRegressor
@@ -19,9 +18,6 @@ gridsearch = False
 features = ['user_id', 'video_id', 'country', 'gender', 'container_id',
             'origin_country', 'origin_language', 'adult', 'broadcast_from', 'broadcast_to',
             'season_number', 'content_owner_id', 'genres', 'episode_count']
-features_non_numeric = ['country','gender','container_id', 'origin_country',
-                        'origin_language','adult','broadcast_from','broadcast_to',
-                        'season_number','content_owner_id','genres']
 
 goal = 'score' #1-3
 
@@ -41,13 +37,13 @@ test['video_id'] = test['video_id'].map(lambda x: x.lstrip('TV'))
 # Define regressors
 if sample:
     regressors = [
-        # Regressor(layers=[
-        #             Layer("Sigmoid", units=100),
-        #             Layer("Sigmoid", units=100),
-        #             Layer("Linear")],
-        #           learning_rate=0.01,learning_rule='adadelta',learning_momentum=0.9,
-        #           batch_size=100,valid_size=0.01,
-        #           n_stable=50,n_iter=200,verbose=True),
+        Regressor(layers=[
+                    Layer("Sigmoid", units=100),
+                    Layer("Sigmoid", units=100),
+                    Layer("Linear")],
+                  learning_rate=0.01,learning_rule='adadelta',learning_momentum=0.9,
+                  batch_size=100,valid_size=0.01,
+                  n_stable=50,n_iter=200,verbose=True),
         GradientBoostingRegressor(n_estimators=10, learning_rate=1.0,max_depth=5, random_state=0),
         RandomForestRegressor(max_depth=8,n_estimators=128),
         XGBRegressor(max_depth=2,n_estimators=512)
