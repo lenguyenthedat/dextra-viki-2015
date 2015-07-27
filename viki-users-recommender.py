@@ -1,0 +1,56 @@
+from __future__ import division
+from sklearn.preprocessing import StandardScaler
+
+import pandas as pd
+import time
+import csv
+import numpy as np
+import os
+import datetime
+import re
+
+## ==================== Data preparation
+print "=> Reading data"
+print datetime.datetime.now()
+videos_matrix = pd.read_csv('./Data/videos_similarity_matrix.csv',sep='\t')
+behaviors = pd.read_csv('./Data/20150701094451-Behavior_training.csv') # for each user, work out the
+test = pd.read_csv('./Data/20150701094451-Sample_submission.csv')
+
+hot_videos = behaviors.groupby('video_id').agg(['count']).sort([('date_hour', 'count')], ascending=False).head(3).index.tolist()
+
+previous_user_id = -1
+previous_user_id_count = 0
+previous_user_id_top3 = []
+for index, row in test.iterrows():
+  if (index % 100000 == 0 & index != 0):
+    print "Finished 100000 recommendations"
+    print datetime.datetime.now()
+  current_user_id = row['user_id']
+  # print "Recommending for user#" + str(current_user_id) + " ..."
+  if current_user_id > 0: # otherwise just continue - to follow dextra / viki submission format
+    # work out the rank of the video we need to recommend (#1, #2, or #3)
+    if current_user_id == previous_user_id: # already calculated
+      previous_user_id_count += 1
+      top3 = previous_user_id_top3
+    else:
+      previous_user_id = current_user_id
+      previous_user_id_count = 1
+      # re-calculating top3
+      # user_history to join with videos_matrix
+      user_history = behaviors[behaviors['user_id'] == current_user_id]
+      user_history_videos_matrix = pd.merge(user_history, videos_matrix, left_on=['video_id'], right_on=['video_id_left'])
+      # remove videos user already watched out of recommendations
+      criterion = user_history_videos_matrix['video_id_right'].map(lambda x: x not in user_history['video_id'].tolist())
+      user_history_videos_matrix = user_history_videos_matrix[criterion]
+      # combined to get best videos and their scores
+      if user_history_videos_matrix.empty: # top videos
+        top3 = hot_videos
+      else: #personalized
+        user_history_videos_matrix = user_history_videos_matrix.groupby(['user_id', 'video_id_right'],as_index=False).aggregate(np.sum)
+        # sort result
+        top3 = user_history_videos_matrix.sort(['sim_combined'], ascending=False).head(3)['video_id_right'].tolist()
+      previous_user_id_top3 = top3
+  # assign recommendation depending on ranking
+  row['video_id'] = top3[previous_user_id_count-1]
+  # print "-> Video ID#" + row['video_id']
+test.to_csv("./data/submit.csv", sep=',', encoding='utf-8', index=False)
