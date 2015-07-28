@@ -9,6 +9,9 @@ import os
 import datetime
 import re
 
+# Remove pandas warning
+pd.options.mode.chained_assignment = None
+
 ## ==================== Data preparation
 print "=> Reading data"
 print datetime.datetime.now()
