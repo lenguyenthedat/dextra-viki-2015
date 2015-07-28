@@ -13,8 +13,10 @@ print "=> Reading data"
 print datetime.datetime.now()
 videos = pd.read_csv('./Data/20150701094451-Video_attributes.csv')
 casts = pd.read_csv('./Data/20150701094451-Video_casts.csv')
+users = pd.read_csv('./Data/20150701094451-User_attributes.csv')
 # we don't care about these for now
 casts = casts.drop('country', 1).drop('gender', 1)
+# behaviors: consider user_id and score as string to concat later on below
 behaviors = pd.read_csv('./Data/20150701094451-Behavior_training.csv',dtype={'user_id':pd.np.string_,'score':pd.np.string_})
 behaviors = behaviors.drop('date_hour', 1).drop('mv_ratio', 1)
 
@@ -28,12 +30,58 @@ videos = pd.merge(videos, casts, on=['container_id'], how='left', suffixes=['_le
 behaviors = behaviors.groupby('video_id',as_index=False).agg(lambda x: ' '.join(x.user_id + '_' + x.score)).drop('score', 1)
 videos = pd.merge(videos, behaviors, on=['video_id'], how='left', suffixes=['_left', '_right'])
 
+## ==================== Feature "Engineering"
+# Added number of F and M who watched the video
+# TODO: tidy this up
+# Reload behaviors
+behaviors = pd.read_csv('./Data/20150701094451-Behavior_training.csv')
+behaviors = pd.merge(behaviors, users, on=['user_id'], how='left')
+
+behaviors_f = behaviors[behaviors['gender'] == 'f']
+behaviors_f = behaviors_f.groupby('video_id',as_index=False).agg(['count'])
+behaviors_f = behaviors_f.drop('date_hour', 1).drop('mv_ratio', 1).drop('country',1).drop('user_id',1).drop('score', 1)
+behaviors_f['video_id'] = behaviors_f.index
+behaviors_f['users_f'] = behaviors_f.gender
+behaviors_f = behaviors_f.drop('gender',1).reset_index(drop=True)
+behaviors_f.columns = ['video_id','user_f']
+
+behaviors_m = behaviors[behaviors['gender'] == 'm']
+behaviors_m = behaviors_m.groupby('video_id',as_index=False).agg(['count'])
+behaviors_m = behaviors_m.drop('date_hour', 1).drop('mv_ratio', 1).drop('country',1).drop('user_id',1).drop('score', 1)
+behaviors_m['video_id'] = behaviors_m.index
+behaviors_m['users_f'] = behaviors_m.gender
+behaviors_m = behaviors_m.drop('gender',1).reset_index(drop=True)
+behaviors_m.columns = ['video_id','user_m']
+
+videos = pd.merge(videos, behaviors_f, on=['video_id'], how='left')
+videos = pd.merge(videos, behaviors_m, on=['video_id'], how='left')
+# Maybe later on we can do a country similarity as well, but that's probably too much
+
+## ==================== Hot videos
+videos['f_rate'] = videos.apply (lambda row: row['user_f'] / (row['user_f'] + row['user_m']),axis=1)
+# 0.85 is the magic number that divide f and m into 2 since there are much more f users comparing to m
+hot_videos_f = videos[videos['f_rate'] > 0.85 ].groupby('video_id',as_index=False).agg(['sum']).sort([('user_f', 'sum')], ascending=False).head(20)
+hot_videos_m = videos[videos['f_rate'] <= 0.85].groupby('video_id',as_index=False).agg(['sum']).sort([('user_m', 'sum')], ascending=False).head(20)
+pd.DataFrame(hot_videos_f.index).to_csv("./data/hot_videos_f.csv", sep='\t', encoding='utf-8')
+pd.DataFrame(hot_videos_m.index).to_csv("./data/hot_videos_m.csv", sep='\t', encoding='utf-8')
+
 ## ==================== Features similarity
 print "=> Features similarity"
 print datetime.datetime.now()
 videos['dummy'] = 1
 videos_matrix = pd.merge(videos, videos, on=['dummy'], suffixes=['_left', '_right'])
 videos_matrix = videos_matrix.drop('dummy', 1)
+
+print "===> Gender"
+print datetime.datetime.now()
+# casts / person_id
+def sim_gender(row):
+    try:
+        return 1- (abs(row['f_rate_left'] - row['f_rate_right']))
+    except:
+        return 0
+
+videos_matrix['sim_gender'] = videos_matrix.apply(sim_gender, axis=1)
 
 print "===> Country"
 print datetime.datetime.now()
@@ -120,7 +168,7 @@ def sim_cast(row):
     try:
         left = set(row['person_id_left'].split())
         right = set(row['person_id_right'].split())
-        return (0 if len(left|right) == 0 else len(left&right) / len(left|right))
+        return len(left&right) / len(left|right)
     except:
         return 0
 

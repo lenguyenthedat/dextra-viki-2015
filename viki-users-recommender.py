@@ -17,8 +17,8 @@ videos_matrix = pd.read_csv('./Data/videos_similarity_matrix.csv',sep='\t')
 # Feature scaling:
 print "=> Feature scaling"
 print datetime.datetime.now()
-sim_features = ['sim_country','sim_language', 'sim_adult', 'sim_content_owner_id', 'sim_broadcast', 'sim_episode_count', 'sim_genres', 'sim_cast', 'jaccard']
-weight_features = [10,10,5,1,1,1,2,2,50]
+sim_features = ['sim_gender','sim_country','sim_language', 'sim_adult', 'sim_content_owner_id', 'sim_broadcast', 'sim_episode_count', 'sim_genres', 'sim_cast', 'jaccard']
+weight_features = [10,5,5,5,1,1,1,5,5,50]
 scaler = StandardScaler()
 for col in sim_features:
     scaler.fit(list(videos_matrix[col]))

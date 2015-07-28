@@ -9,8 +9,8 @@ import os
 import datetime
 import re
 
-sim_features = ['sim_country','sim_language', 'sim_adult', 'sim_content_owner_id', 'sim_broadcast', 'sim_episode_count', 'sim_genres', 'sim_cast', 'jaccard']
-weight_features = [5,5,5,1,1,1,5,5,50]
+sim_features = ['sim_gender','sim_country','sim_language', 'sim_adult', 'sim_content_owner_id', 'sim_broadcast', 'sim_episode_count', 'sim_genres', 'sim_cast', 'jaccard']
+weight_features = [10,5,5,5,1,1,1,5,5,50]
 ## ==================== Data preparation
 print "=> Reading data & Pre Processing"
 print datetime.datetime.now()
