@@ -69,9 +69,9 @@ print "===> Gender"
 print datetime.datetime.now()
 # casts / person_id
 def sim_gender(row):
-    try:
-        return 1- (abs(row['f_rate_left'] - row['f_rate_right']))
-    except:
+    if (row['f_rate_left'] > 0 and row['f_rate_right'] > 0 ):
+        return 1 - (abs(row['f_rate_left'] - row['f_rate_right']))
+    else:
         return 0
 
 videos_matrix['sim_gender'] = videos_matrix.apply(sim_gender, axis=1)
@@ -170,30 +170,39 @@ videos_matrix['sim_cast'] = videos_matrix.apply(sim_cast, axis=1)
 ## ==================== CF similarity
 print "=> Calculating Jaccard indexes"
 print datetime.datetime.now()
-def jaccard(row):
+
+def jaccard_1(row):
     try:
         left_1 = set([item for item in row['user_id_left'].split() if item.endswith('_1')])
         right_1 = set([item for item in row['user_id_right'].split() if item.endswith('_1')])
-        jaccard_1 = len(left_1&right_1) / len(left_1|right_1)
-    except:   
-        jaccard_1 = 0
+        return len(left_1&right_1) / len(left_1|right_1)
+    except:
+        return 0
+
+# This might take ~2.5 hours or more to finish.
+videos_matrix['jaccard_1'] = videos_matrix.apply(jaccard_1, axis=1)
+
+def jaccard_2(row):
     try:
         left_2 = set([item for item in row['user_id_left'].split() if item.endswith('_2')])
         right_2 = set([item for item in row['user_id_right'].split() if item.endswith('_2')])
-        jaccard_2 = len(left_2&right_2) / len(left_2|right_2)
-    except:   
-        jaccard_2 = 0
+        return len(left_2&right_2) / len(left_2|right_2)
+    except:
+        return 0
+
+# This might take ~2.5 hours or more to finish.
+videos_matrix['jaccard_2'] = videos_matrix.apply(jaccard_2, axis=1)
+
+def jaccard_3(row):
     try:
         left_3 = set([item for item in row['user_id_left'].split() if item.endswith('_3')])
         right_3 = set([item for item in row['user_id_right'].split() if item.endswith('_3')])
-        jaccard_3 = len(left_3&right_3) / len(left_3|right_3)
+        return len(left_3&right_3) / len(left_3|right_3)
     except:
-        jaccard_3 = 0
-    
-    return (10*jaccard_3 + 5*jaccard_2 + jaccard_1)
+        return 0
 
 # This might take ~2.5 hours or more to finish.
-videos_matrix['jaccard'] = videos_matrix.apply(jaccard, axis=1)
+videos_matrix['jaccard_3'] = videos_matrix.apply(jaccard_3, axis=1)
 
 ## Output to CSV
 print "=> Out to CSV"

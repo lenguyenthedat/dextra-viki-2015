@@ -43,7 +43,6 @@ Submission history:
 - Min-Max  scaler with weight_features 10-05-05-03-03-03-05-05-20 Result: 0.0897612 => MinMax scaler doesn't really work very well does it?
 - Standard scaler with weight_features 05-05-05-01-01-01-05-05-50 Result: 0.158367
 - Standard scaler with weight_features 05-05-05-01-01-01-05-05-50 Result: 0.15737 (Considering user gender when recommending Hot Videos) Seems like it's better to just recommend best one.
-- Standard scaler with weight_features 05-05-05-01-01-01-05-10-80 Result:
+- Standard scaler with weight_features 05-05-05-01-01-01-05-10-80 Result: 0.160277
+- Standard scaler with weight_features 00-00-00-00-00-00-00-00-01 Result: 0.1611 (jaccard alone)
 -> Added gender similarity for Videos
-- Standard scaler with weight_features 10-05-05-05-01-01-01-05-05-50 Result:
-- Standard scaler with weight_features 10-05-05-05-01-01-01-05-10-80 Result:

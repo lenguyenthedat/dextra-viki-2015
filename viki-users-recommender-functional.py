@@ -12,8 +12,14 @@ import re
 # Remove pandas warning
 pd.options.mode.chained_assignment = None
 
-sim_features = ['sim_country','sim_language', 'sim_adult', 'sim_content_owner_id', 'sim_broadcast', 'sim_episode_count', 'sim_genres', 'sim_cast', 'jaccard']
-weight_features = [5,5,5,1,1,1,5,10,80]
+sim_features = ['sim_gender', 'sim_country', 'sim_language',
+                'sim_adult', 'sim_content_owner_id', 'sim_broadcast',
+                'sim_episode_count', 'sim_genres', 'sim_cast',
+                'jaccard_1', 'jaccard_2', 'jaccard_3']
+weight_features = [0,0,0,
+                   0,0,0,
+                   0,0,0,
+                   1,1,1]
 ## ==================== Data preparation
 print "=> Reading data & Pre Processing"
 print datetime.datetime.now()
@@ -47,7 +53,9 @@ videos_matrix = videos_matrix.drop('sim_season', 1)
 videos_matrix = videos_matrix.drop('sim_episode_count', 1)
 videos_matrix = videos_matrix.drop('sim_genres', 1)
 videos_matrix = videos_matrix.drop('sim_cast', 1)
-videos_matrix = videos_matrix.drop('jaccard', 1)
+videos_matrix = videos_matrix.drop('jaccard_1', 1)
+videos_matrix = videos_matrix.drop('jaccard_2', 1)
+videos_matrix = videos_matrix.drop('jaccard_3', 1)
 # remove self-similarity entries
 videos_matrix = videos_matrix[videos_matrix['video_id_left'] != videos_matrix['video_id_right']]
 # Top 5 similar videos to each video - 5 should be enough since we are only recommending 3 videos per person
