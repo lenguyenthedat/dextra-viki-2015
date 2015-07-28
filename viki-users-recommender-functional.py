@@ -25,7 +25,7 @@ print "=> Reading data & Pre Processing"
 print datetime.datetime.now()
 
 # Videos Matrix
-videos_matrix = pd.read_csv('./Data/videos_similarity_matrix.csv',sep='\t')
+videos_matrix = pd.read_csv('./Data/videos_similarity_matrix.csv')
 # Feature scaling:
 print "=> Feature scaling"
 print datetime.datetime.now()

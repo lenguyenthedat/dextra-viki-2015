@@ -15,7 +15,7 @@ pd.options.mode.chained_assignment = None
 ## ==================== Data preparation
 print "=> Reading data"
 print datetime.datetime.now()
-videos_matrix = pd.read_csv('./Data/videos_similarity_matrix.csv',sep='\t')
+videos_matrix = pd.read_csv('./Data/videos_similarity_matrix.csv')
 ## ===================== Combined
 # Feature scaling:
 print "=> Feature scaling"
@@ -85,4 +85,4 @@ for index, row in test.iterrows():
   row['video_id'] = top3[previous_user_id_count-1]
   # print "-> Video ID#" + row['video_id']
 if not os.path.exists('result/'): os.makedirs('result/')
-test.to_csv('./result/submit-'+'-'.join(str(x) for x in weight_features)+'.csv', sep=',', encoding='utf-8', index=False)
+test.to_csv('./result/submit-'+'-'.join(str(x) for x in weight_features)+'.csv', encoding='utf-8', index=False)

@@ -34,7 +34,7 @@ for col in features_non_numeric:
 master = pd.merge(behaviors, users, on='user_id', suffixes=['_left', '_right'])
 master = pd.merge(master, videos, on='video_id', suffixes=['_left', '_right'])
 master = master.drop('date_hour', 1)
-master.to_csv("./data/train.csv", sep=',', encoding='utf-8', index=False)
+master.to_csv("./data/train.csv", encoding='utf-8', index=False)
 
 # Test data
 # Added a 'dummy' column to mass join users & hot_videos into a matrix
@@ -46,4 +46,4 @@ hot_videos = pd.merge(hot_videos, videos, on=['video_id'], suffixes=['_left', '_
 
 test_master = pd.merge(users, test_users, on='user_id', suffixes=['_left', '_right'])
 test_master = pd.merge(test_master, hot_videos, on='dummy', suffixes=['_left', '_right'])
-test_master.to_csv("./data/test.csv", sep=',', encoding='utf-8', index=False)
+test_master.to_csv("./data/test.csv", encoding='utf-8', index=False)
