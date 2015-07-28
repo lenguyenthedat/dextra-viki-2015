@@ -55,15 +55,8 @@ behaviors_m.columns = ['video_id','user_m']
 
 videos = pd.merge(videos, behaviors_f, on=['video_id'], how='left')
 videos = pd.merge(videos, behaviors_m, on=['video_id'], how='left')
-# Maybe later on we can do a country similarity as well, but that's probably too much
-
-## ==================== Hot videos
 videos['f_rate'] = videos.apply (lambda row: row['user_f'] / (row['user_f'] + row['user_m']),axis=1)
-# 0.85 is the magic number that divide f and m into 2 since there are much more f users comparing to m
-hot_videos_f = videos[videos['f_rate'] > 0.85 ].groupby('video_id',as_index=False).agg(['sum']).sort([('user_f', 'sum')], ascending=False).head(20)
-hot_videos_m = videos[videos['f_rate'] <= 0.85].groupby('video_id',as_index=False).agg(['sum']).sort([('user_m', 'sum')], ascending=False).head(20)
-pd.DataFrame(hot_videos_f.index).to_csv("./data/hot_videos_f.csv", sep='\t', encoding='utf-8')
-pd.DataFrame(hot_videos_m.index).to_csv("./data/hot_videos_m.csv", sep='\t', encoding='utf-8')
+# Maybe later on we can do a country similarity as well, but that's probably too much
 
 ## ==================== Features similarity
 print "=> Features similarity"

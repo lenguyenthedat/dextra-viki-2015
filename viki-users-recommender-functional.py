@@ -12,18 +12,11 @@ import re
 # Remove pandas warning
 pd.options.mode.chained_assignment = None
 
-sim_features = ['sim_gender','sim_country','sim_language', 'sim_adult', 'sim_content_owner_id', 'sim_broadcast', 'sim_episode_count', 'sim_genres', 'sim_cast', 'jaccard']
-weight_features = [10,5,5,5,1,1,1,5,5,50]
+sim_features = ['sim_country','sim_language', 'sim_adult', 'sim_content_owner_id', 'sim_broadcast', 'sim_episode_count', 'sim_genres', 'sim_cast', 'jaccard']
+weight_features = [5,5,5,1,1,1,5,10,80]
 ## ==================== Data preparation
 print "=> Reading data & Pre Processing"
 print datetime.datetime.now()
-
-# Hot videos
-# Top 10, should be enough # remember to exclude from watched_videos later on
-# TODO: Remove similar from the top3 list. Make sure not recommending the same
-# Not too urgently - it's very rare that this happen, because someone has to have less than 3 recommendations.
-hot_videos_f = pd.read_csv('./data/hot_videos_f.csv', sep='\t', encoding='utf-8')['video_id'].tolist()
-hot_videos_m = pd.read_csv('./data/hot_videos_m.csv', sep='\t', encoding='utf-8')['video_id'].tolist()
 
 # Videos Matrix
 videos_matrix = pd.read_csv('./Data/videos_similarity_matrix.csv',sep='\t')
@@ -65,6 +58,12 @@ behaviors = pd.read_csv('./Data/20150701094451-Behavior_training.csv')
 behaviors = behaviors.drop('date_hour', 1)
 behaviors = behaviors.drop('mv_ratio', 1)
 
+# Hot videos
+# Top 10, should be enough # remember to exclude from watched_videos later on
+# TODO: Remove similar from the top3 list. Make sure not recommending the same
+# Not too urgently - it's very rare that this happen, because someone has to have less than 3 recommendations.
+hot_videos = behaviors.groupby('video_id').agg(['count']).sort([('score', 'count')], ascending=False).head(10).index.tolist()
+
 print "=> Combining matrixes"
 print datetime.datetime.now()
 user_history_videos_matrix = pd.merge(behaviors, videos_matrix, left_on=['video_id'], right_on=['video_id_left'])
@@ -100,32 +99,22 @@ print datetime.datetime.now()
 # separated by '-1,DEXTRA' and '-2,DEXTRA' (removed, otherwise we can't use `row['count'] % 3` below)
 test1 = pd.read_csv('./Data/20150701094451-Sample_submission-p1.csv')
 test2 = pd.read_csv('./Data/20150701094451-Sample_submission-p2.csv')
-users = pd.read_csv('./Data/20150701094451-User_attributes.csv')
 submit1 = pd.merge(test1, grouped_user_history_videos_matrix, on=['user_id'], how='left')
-submit1 = pd.merge(submit1, users, on=['user_id'], how='left')
 submit1['count'] = submit1.index
 submit2 = pd.merge(test2, grouped_user_history_videos_matrix, on=['user_id'], how='left')
-submit2 = pd.merge(submit2, users, on=['user_id'], how='left')
 submit2['count'] = submit2.index
 def recommendation(row):
   try:
     return row['recommendations'][row['count'] % 3]
   except:
-    if row['gender'] == 'm':
-        return hot_videos_m[row['count'] % 3]
-    else:
-        return hot_videos_f[row['count'] % 3]
+        return hot_videos[row['count'] % 3]
 
 submit1['video_id'] = submit1.apply(recommendation, axis=1)
 submit2['video_id'] = submit2.apply(recommendation, axis=1)
 submit1 = submit1.drop('recommendations', 1)
 submit1 = submit1.drop('count', 1)
-submit1 = submit1.drop('country', 1)
-submit1 = submit1.drop('gender', 1)
 submit2 = submit2.drop('recommendations', 1)
 submit2 = submit2.drop('count', 1)
-submit2 = submit2.drop('country', 1)
-submit2 = submit2.drop('gender', 1)
 
 print "=> Writing result to CSV"
 print datetime.datetime.now()
