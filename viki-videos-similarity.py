@@ -11,13 +11,13 @@ import re
 ## ==================== Data preparation
 print "=> Reading data"
 print datetime.datetime.now()
-videos = pd.read_csv('./Data/20150701094451-Video_attributes.csv')
-casts = pd.read_csv('./Data/20150701094451-Video_casts.csv')
-users = pd.read_csv('./Data/20150701094451-User_attributes.csv')
+videos = pd.read_csv('./data/20150701094451-Video_attributes.csv')
+casts = pd.read_csv('./data/20150701094451-Video_casts.csv')
+users = pd.read_csv('./data/20150701094451-User_attributes.csv')
 # we don't care about these for now
 casts = casts.drop('country', 1).drop('gender', 1)
 # behaviors: consider user_id and score as string to concat later on below
-behaviors = pd.read_csv('./Data/20150701094451-Behavior_training.csv',dtype={'user_id':pd.np.string_,'score':pd.np.string_})
+behaviors = pd.read_csv('./data/20150701094451-Behavior_training.csv',dtype={'user_id':pd.np.string_,'score':pd.np.string_})
 behaviors = behaviors.drop('date_hour', 1).drop('mv_ratio', 1)
 
 # combined all casts to join with videos
@@ -34,7 +34,7 @@ videos = pd.merge(videos, behaviors, on=['video_id'], how='left', suffixes=['_le
 # Added number of F and M who watched the video
 # TODO: tidy this up
 # Reload behaviors
-behaviors = pd.read_csv('./Data/20150701094451-Behavior_training.csv')
+behaviors = pd.read_csv('./data/20150701094451-Behavior_training.csv')
 behaviors = pd.merge(behaviors, users, on=['user_id'], how='left')
 
 behaviors_f = behaviors[behaviors['gender'] == 'f']

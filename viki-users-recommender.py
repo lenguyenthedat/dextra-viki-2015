@@ -15,7 +15,7 @@ pd.options.mode.chained_assignment = None
 ## ==================== Data preparation
 print "=> Reading data"
 print datetime.datetime.now()
-videos_matrix = pd.read_csv('./Data/videos_similarity_matrix.csv')
+videos_matrix = pd.read_csv('./data/videos_similarity_matrix.csv')
 ## ===================== Combined
 # Feature scaling:
 print "=> Feature scaling"
@@ -44,8 +44,8 @@ def sim_combined(row):
 
 videos_matrix['sim_combined'] = videos_matrix.apply(sim_combined, axis=1)
 
-behaviors = pd.read_csv('./Data/20150701094451-Behavior_training.csv')
-test = pd.read_csv('./Data/20150701094451-Sample_submission.csv')
+behaviors = pd.read_csv('./data/20150701094451-Behavior_training.csv')
+test = pd.read_csv('./data/20150701094451-Sample_submission.csv')
 
 hot_videos = behaviors.groupby('video_id').agg(['count']).sort([('date_hour', 'count')], ascending=False).head(3).index.tolist()
 

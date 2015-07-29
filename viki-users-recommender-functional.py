@@ -25,7 +25,7 @@ print "=> Reading data & Pre Processing"
 print datetime.datetime.now()
 
 # Videos Matrix
-videos_matrix = pd.read_csv('./Data/videos_similarity_matrix.csv')
+videos_matrix = pd.read_csv('./data/videos_similarity_matrix.csv')
 # Feature scaling:
 print "=> Feature scaling"
 print datetime.datetime.now()
@@ -62,7 +62,7 @@ videos_matrix = videos_matrix[videos_matrix['video_id_left'] != videos_matrix['v
 videos_matrix = videos_matrix.sort(['sim_combined'], ascending=False).groupby('video_id_left').head(5)
 
 # Behavior
-behaviors = pd.read_csv('./Data/20150701094451-Behavior_training.csv')
+behaviors = pd.read_csv('./data/20150701094451-Behavior_training.csv')
 behaviors = behaviors.drop('date_hour', 1)
 behaviors = behaviors.drop('mv_ratio', 1)
 
@@ -105,8 +105,8 @@ grouped_user_history_videos_matrix['user_id'] = grouped_user_history_videos_matr
 print "=> Processing results"
 print datetime.datetime.now()
 # separated by '-1,DEXTRA' and '-2,DEXTRA' (removed, otherwise we can't use `row['count'] % 3` below)
-test1 = pd.read_csv('./Data/20150701094451-Sample_submission-p1.csv')
-test2 = pd.read_csv('./Data/20150701094451-Sample_submission-p2.csv')
+test1 = pd.read_csv('./data/20150701094451-Sample_submission-p1.csv')
+test2 = pd.read_csv('./data/20150701094451-Sample_submission-p2.csv')
 submit1 = pd.merge(test1, grouped_user_history_videos_matrix, on=['user_id'], how='left')
 submit1['count'] = submit1.index
 submit2 = pd.merge(test2, grouped_user_history_videos_matrix, on=['user_id'], how='left')

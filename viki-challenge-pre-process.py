@@ -8,10 +8,10 @@ features_non_numeric = ['country','gender','container_id', 'origin_country',
                         'season_number','content_owner_id','genres']
 
 ## Data preparation
-videos = pd.read_csv('./Data/20150701094451-Video_attributes.csv')
-users = pd.read_csv('./Data/20150701094451-User_attributes.csv')
-behaviors = pd.read_csv('./Data/20150701094451-Behavior_training.csv')
-test = pd.read_csv('./Data/20150701094451-Sample_submission.csv')
+videos = pd.read_csv('./data/20150701094451-Video_attributes.csv')
+users = pd.read_csv('./data/20150701094451-User_attributes.csv')
+behaviors = pd.read_csv('./data/20150701094451-Behavior_training.csv')
+test = pd.read_csv('./data/20150701094451-Sample_submission.csv')
 test_users = pd.DataFrame({'user_id' : test['user_id'][test['user_id'] > 0].unique()})
 
 # Pre-processing non-number values
