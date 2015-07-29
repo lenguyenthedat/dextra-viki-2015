@@ -1,5 +1,5 @@
 from __future__ import division
-from sklearn.preprocessing import MinMaxScaler
+from sklearn.preprocessing import StandardScaler
 
 import pandas as pd
 import time
@@ -16,26 +16,40 @@ sim_features = ['sim_gender', 'sim_country', 'sim_language',
                 'sim_adult', 'sim_content_owner_id', 'sim_broadcast',
                 'sim_episode_count', 'sim_genres', 'sim_cast',
                 'jaccard_1', 'jaccard_2', 'jaccard_3']
-weight_features = [0,0,0,
-                   0,0,0,
-                   0,0,0,
-                   1,5,25]
-
+weight_features = [5,5,10,
+                   10,1,3,
+                   3,5,10,
+                   10,25,100]
 ## ==================== Data preparation
 print "=> Reading data & Pre Processing"
 print datetime.datetime.now()
 
+
+# Behavior
+behaviors = pd.read_csv('./data/20150701094451-Behavior_training.csv')
+behaviors = behaviors.drop('date_hour', 1)
+behaviors = behaviors.drop('mv_ratio', 1)
+
+# Hot videos
+# Top 10, should be enough # remember to exclude from watched_videos later on
+# TODO: Remove similar from the top3 list. Make sure not recommending the same
+# Not too urgently - it's very rare that this happen, because someone has to have less than 3 recommendations.
+hot_videos = behaviors.groupby('video_id').agg(['count']).sort([('score', 'count')], ascending=False).head(10).index.tolist()
+# 50 Insignificant Videos that should be removed from the master videos_matrix
+not_hot_videos = behaviors.groupby('video_id').agg(['count']).sort([('score', 'count')], ascending=False).tail(50).index.tolist()
+
 # Videos Matrix
 videos_matrix = pd.read_csv('./data/videos_similarity_matrix.csv')
-
 # remove self-similarity entries
 # It's important to do this so that we will not get skewed result - bad for our scaler
 videos_matrix = videos_matrix[videos_matrix['video_id_left'] != videos_matrix['video_id_right']]
+videos_matrix = videos_matrix[[x not in not_hot_videos for x in videos_matrix['video_id_left']]]
+videos_matrix = videos_matrix[[x not in not_hot_videos for x in videos_matrix['video_id_right']]]
 
 # Feature scaling:
 print "=> Feature scaling"
 print datetime.datetime.now()
-scaler = MinMaxScaler()
+scaler = StandardScaler()
 for col in sim_features:
     scaler.fit(list(videos_matrix[col]))
     videos_matrix[col] = scaler.transform(videos_matrix[col])
@@ -64,17 +78,6 @@ videos_matrix = videos_matrix.drop('jaccard_2', 1)
 videos_matrix = videos_matrix.drop('jaccard_3', 1)
 # Top 5 similar videos to each video - 5 should be enough since we are only recommending 3 videos per person
 videos_matrix = videos_matrix.sort(['sim_combined'], ascending=False).groupby('video_id_left').head(5)
-
-# Behavior
-behaviors = pd.read_csv('./data/20150701094451-Behavior_training.csv')
-behaviors = behaviors.drop('date_hour', 1)
-behaviors = behaviors.drop('mv_ratio', 1)
-
-# Hot videos
-# Top 10, should be enough # remember to exclude from watched_videos later on
-# TODO: Remove similar from the top3 list. Make sure not recommending the same
-# Not too urgently - it's very rare that this happen, because someone has to have less than 3 recommendations.
-hot_videos = behaviors.groupby('video_id').agg(['count']).sort([('score', 'count')], ascending=False).head(10).index.tolist()
 
 print "=> Combining matrixes"
 print datetime.datetime.now()

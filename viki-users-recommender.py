@@ -15,12 +15,26 @@ pd.options.mode.chained_assignment = None
 ## ==================== Data preparation
 print "=> Reading data"
 print datetime.datetime.now()
+behaviors = pd.read_csv('./data/20150701094451-Behavior_training.csv')
+test = pd.read_csv('./data/20150701094451-Sample_submission.csv')
 videos_matrix = pd.read_csv('./data/videos_similarity_matrix.csv')
 
+# Hot videos
+# Top 10, should be enough # remember to exclude from watched_videos later on
+# TODO: Remove similar from the top3 list. Make sure not recommending the same
+# Not too urgently - it's very rare that this happen, because someone has to have less than 3 recommendations.
+hot_videos = behaviors.groupby('video_id').agg(['count']).sort([('score', 'count')], ascending=False).head(10).index.tolist()
+# 50 Insignificant Videos that should be removed from the master videos_matrix
+not_hot_videos = behaviors.groupby('video_id').agg(['count']).sort([('score', 'count')], ascending=False).tail(50).index.tolist()
+
+# Videos Matrix
+videos_matrix = pd.read_csv('./data/videos_similarity_matrix.csv')
 # remove self-similarity entries
 # It's important to do this so that we will not get skewed result - bad for our scaler
 videos_matrix = videos_matrix[videos_matrix['video_id_left'] != videos_matrix['video_id_right']]
-## ===================== Combined
+videos_matrix = videos_matrix[[x not in not_hot_videos for x in videos_matrix['video_id_left']]]
+videos_matrix = videos_matrix[[x not in not_hot_videos for x in videos_matrix['video_id_right']]]
+
 # Feature scaling:
 print "=> Feature scaling"
 print datetime.datetime.now()
@@ -48,17 +62,12 @@ def sim_combined(row):
 
 videos_matrix['sim_combined'] = videos_matrix.apply(sim_combined, axis=1)
 
-behaviors = pd.read_csv('./data/20150701094451-Behavior_training.csv')
-test = pd.read_csv('./data/20150701094451-Sample_submission.csv')
-
-hot_videos = behaviors.groupby('video_id').agg(['count']).sort([('date_hour', 'count')], ascending=False).head(3).index.tolist()
-
 previous_user_id = -1
 previous_user_id_count = 0
 previous_user_id_top3 = []
 for index, row in test.iterrows():
-  if (index % 100000 == 0 & index != 0):
-    print "Finished 100000 recommendations"
+  if (index % 100 == 0 & index != 0):
+    print "Finished 100 recommendations"
     print datetime.datetime.now()
   current_user_id = row['user_id']
   # print "Recommending for user#" + str(current_user_id) + " ..."
