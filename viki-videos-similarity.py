@@ -127,9 +127,12 @@ print "===> Seasons"
 print datetime.datetime.now()
 # season_number
 def sim_season(row):
-    left = int(row['season_number_left'] if row['season_number_left'].isdigit() else 0)
-    right = int(row['season_number_right'] if row['season_number_right'].isdigit() else 0)
-    return abs(left - right)
+    try:
+        left = int(row['season_number_left'] if row['season_number_left'].isdigit() else 0)
+        right = int(row['season_number_right'] if row['season_number_right'].isdigit() else 0)
+        return min(left,right)/max(left,right)
+    except:
+        return 0
 
 videos_matrix['sim_season'] = videos_matrix.apply(sim_season, axis=1)
 
@@ -137,7 +140,10 @@ print "===> Episodes"
 print datetime.datetime.now()
 # episode_count
 def sim_episode_count(row):
-    return abs(row['episode_count_left'] - row['episode_count_right'])
+    try:
+        return min(row['episode_count_left'],row['episode_count_right'])/max(row['episode_count_left'],row['episode_count_right'])
+    except:
+        return 0
 
 videos_matrix['sim_episode_count'] = videos_matrix.apply(sim_episode_count, axis=1)
 
