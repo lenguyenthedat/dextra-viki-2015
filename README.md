@@ -24,8 +24,7 @@ Trained model can achieve RMSE ~ 48 (for `mv_ratio` as goal).
 
 Then run recommender with either one of these
 
-    $ python viki-users-recommender-on-the-fly.py # one by one - should take weeks to finish
-    $ python viki-users-recommender-batch.py # functional - batch approach - 30 mins
+    $ python viki-users-recommender.py # batch process - 30 mins
 
 This is more practical since `#videos x #videos` matrix is much smaller.
 Weights can be set manually:
@@ -53,4 +52,8 @@ Submission history:
 - Standard scaler with weight_features 00-00-00-00-00-00-00-00-01           Result: 0.1611 (jaccard alone)
 - Standard scaler with weight_features 00-00-00-00-00-00-00-00-00-01-01-01  Result: 0.140996 - Added gender similarity for Videos & Separated 3 jaccard scores.
 - Min-Max  scaler with weight_features 00-00-00-00-00-00-00-00-00-01-05-25  Result: 0.15947
-- Standard scaler with weight_features 05-05-10-10-01-03-03-05-10-10-25-100 Result: 
+- Standard scaler with weight_features 05-05-10-10-01-03-03-05-10-10-25-100 Result: 0.16113 - Better scaling and feature similarity calculation
+
+TODO: 
+- Figuring out country restriction problem
+- Try 1-2 and 1-3 etc instead of 1-1 2-2 3-3 approach
