@@ -1,5 +1,5 @@
 from __future__ import division
-from sklearn.preprocessing import StandardScaler
+from sklearn.preprocessing import MinMaxScaler
 
 import pandas as pd
 import time
@@ -16,6 +16,10 @@ pd.options.mode.chained_assignment = None
 print "=> Reading data"
 print datetime.datetime.now()
 videos_matrix = pd.read_csv('./data/videos_similarity_matrix.csv')
+
+# remove self-similarity entries
+# It's important to do this so that we will not get skewed result - bad for our scaler
+videos_matrix = videos_matrix[videos_matrix['video_id_left'] != videos_matrix['video_id_right']]
 ## ===================== Combined
 # Feature scaling:
 print "=> Feature scaling"
@@ -28,7 +32,7 @@ weight_features = [0,0,0,
                    0,0,0,
                    0,0,0,
                    1,1,1]
-scaler = StandardScaler()
+scaler = MinMaxScaler()
 for col in sim_features:
     scaler.fit(list(videos_matrix[col]))
     videos_matrix[col] = scaler.transform(videos_matrix[col])

@@ -1,5 +1,5 @@
 from __future__ import division
-from sklearn.preprocessing import StandardScaler
+from sklearn.preprocessing import MinMaxScaler
 
 import pandas as pd
 import time
@@ -19,17 +19,23 @@ sim_features = ['sim_gender', 'sim_country', 'sim_language',
 weight_features = [0,0,0,
                    0,0,0,
                    0,0,0,
-                   1,1,1]
+                   1,5,25]
+
 ## ==================== Data preparation
 print "=> Reading data & Pre Processing"
 print datetime.datetime.now()
 
 # Videos Matrix
 videos_matrix = pd.read_csv('./data/videos_similarity_matrix.csv')
+
+# remove self-similarity entries
+# It's important to do this so that we will not get skewed result - bad for our scaler
+videos_matrix = videos_matrix[videos_matrix['video_id_left'] != videos_matrix['video_id_right']]
+
 # Feature scaling:
 print "=> Feature scaling"
 print datetime.datetime.now()
-scaler = StandardScaler()
+scaler = MinMaxScaler()
 for col in sim_features:
     scaler.fit(list(videos_matrix[col]))
     videos_matrix[col] = scaler.transform(videos_matrix[col])
@@ -56,8 +62,6 @@ videos_matrix = videos_matrix.drop('sim_cast', 1)
 videos_matrix = videos_matrix.drop('jaccard_1', 1)
 videos_matrix = videos_matrix.drop('jaccard_2', 1)
 videos_matrix = videos_matrix.drop('jaccard_3', 1)
-# remove self-similarity entries
-videos_matrix = videos_matrix[videos_matrix['video_id_left'] != videos_matrix['video_id_right']]
 # Top 5 similar videos to each video - 5 should be enough since we are only recommending 3 videos per person
 videos_matrix = videos_matrix.sort(['sim_combined'], ascending=False).groupby('video_id_left').head(5)
 

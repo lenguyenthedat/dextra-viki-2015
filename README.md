@@ -45,4 +45,5 @@ Submission history:
 - Standard scaler with weight_features 05-05-05-01-01-01-05-05-50 Result: 0.15737 (Considering user gender when recommending Hot Videos) Seems like it's better to just recommend best one.
 - Standard scaler with weight_features 05-05-05-01-01-01-05-10-80 Result: 0.160277
 - Standard scaler with weight_features 00-00-00-00-00-00-00-00-01 Result: 0.1611 (jaccard alone)
--> Added gender similarity for Videos
+-> Added gender similarity for Videos & Separated 3 jaccard scores.
+- Standard scaler with weight_features 00-00-00-00-00-00-00-00-00-01-01-01 Result: 0.140996
