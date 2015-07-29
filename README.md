@@ -24,26 +24,33 @@ Trained model can achieve RMSE ~ 48 (for `mv_ratio` as goal).
 
 Then run recommender with either one of these
 
-    $ python viki-users-recommender.py # imperative approach - one by one - should take weeks to finish
-    $ python viki-users-recommender-functional.py # functional - batch approach - 30 mins
+    $ python viki-users-recommender-on-the-fly.py # one by one - should take weeks to finish
+    $ python viki-users-recommender-batch.py # functional - batch approach - 30 mins
 
 This is more practical since `#videos x #videos` matrix is much smaller.
 Weights can be set manually:
 
-    sim_features = ['sim_country','sim_language', 'sim_adult', 'sim_content_owner_id', 'sim_broadcast', 'sim_episode_count', 'sim_genres', 'sim_cast', 'jaccard']
-    weight_features = [10,10,10,3,3,3,10,10,50]
+    sim_features    = ['sim_gender', 'sim_country', 'sim_language',
+                       'sim_adult', 'sim_content_owner_id', 'sim_broadcast',
+                       'sim_episode_count', 'sim_genres', 'sim_cast',
+                       'jaccard_1', 'jaccard_2', 'jaccard_3']
+    weight_features = [5,5,10,
+                       10,1,3,
+                       3,5,10,
+                       10,25,100]
 
 Submission history:
 
-- Standard scaler with weight_features 10-10-05-01-01-01-05-05-20 Result: 0.1459
-- Standard scaler with weight_features 10-10-05-01-01-01-02-02-10 Result: 0.135167
-- Standard scaler with weight_features 10-10-10-03-03-03-10-10-40 Result: 0.145651
-- Standard scaler with weight_features 10-10-10-03-03-03-10-10-10 Result: 0.0877144 => Jaccard is pretty good!
-- Min-Max  scaler with weight_features 10-10-10-03-03-03-10-10-50 Result: 0.099632
-- Min-Max  scaler with weight_features 10-05-05-03-03-03-05-05-20 Result: 0.0897612 => MinMax scaler doesn't really work very well does it?
-- Standard scaler with weight_features 05-05-05-01-01-01-05-05-50 Result: 0.158367
-- Standard scaler with weight_features 05-05-05-01-01-01-05-05-50 Result: 0.15737 (Considering user gender when recommending Hot Videos) Seems like it's better to just recommend best one.
-- Standard scaler with weight_features 05-05-05-01-01-01-05-10-80 Result: 0.160277
-- Standard scaler with weight_features 00-00-00-00-00-00-00-00-01 Result: 0.1611 (jaccard alone)
--> Added gender similarity for Videos & Separated 3 jaccard scores.
-- Standard scaler with weight_features 00-00-00-00-00-00-00-00-00-01-01-01 Result: 0.140996
+- Standard scaler with weight_features 10-10-05-01-01-01-05-05-20           Result: 0.1459
+- Standard scaler with weight_features 10-10-05-01-01-01-02-02-10           Result: 0.135167
+- Standard scaler with weight_features 10-10-10-03-03-03-10-10-40           Result: 0.145651
+- Standard scaler with weight_features 10-10-10-03-03-03-10-10-10           Result: 0.0877144 => Jaccard is pretty good!
+- Min-Max  scaler with weight_features 10-10-10-03-03-03-10-10-50           Result: 0.099632
+- Min-Max  scaler with weight_features 10-05-05-03-03-03-05-05-20           Result: 0.0897612 => MinMax scaler doesn't really work very well does it?
+- Standard scaler with weight_features 05-05-05-01-01-01-05-05-50           Result: 0.158367
+- Standard scaler with weight_features 05-05-05-01-01-01-05-05-50           Result: 0.15737 (Tried hot_videos_m and hot_videos_f)
+- Standard scaler with weight_features 05-05-05-01-01-01-05-10-80           Result: 0.160277
+- Standard scaler with weight_features 00-00-00-00-00-00-00-00-01           Result: 0.1611 (jaccard alone)
+- Standard scaler with weight_features 00-00-00-00-00-00-00-00-00-01-01-01  Result: 0.140996 - Added gender similarity for Videos & Separated 3 jaccard scores.
+- Min-Max  scaler with weight_features 00-00-00-00-00-00-00-00-00-01-05-25  Result: 0.15947
+- Standard scaler with weight_features 05-05-10-10-01-03-03-05-10-10-25-100 Result: 
