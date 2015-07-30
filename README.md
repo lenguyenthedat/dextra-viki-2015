@@ -32,11 +32,11 @@ Weights can be set manually:
     sim_features    = ['sim_gender', 'sim_country', 'sim_language',
                        'sim_adult', 'sim_content_owner_id', 'sim_broadcast',
                        'sim_episode_count', 'sim_genres', 'sim_cast',
-                       'jaccard_1', 'jaccard_2', 'jaccard_3']
+                       'jaccard', jaccard_1', 'jaccard_2', 'jaccard_3']
     weight_features = [5,5,10,
                        10,1,3,
                        3,5,10,
-                       10,25,100]
+                       10,10,25,100]
 
 Submission history:
 
@@ -58,9 +58,8 @@ Submission history:
 - Standard scaler with weights: 05-05-10-10-01-03-03-05-10-0-100-200 Result: 0.152626
 - Standard scaler with weights: 05-05-10-10-01-03-03-05-10-10-20-40  Result: 0.151006
 - Standard scaler with weights: 00-00-00-00-00-00-00-00-00-10-50-100 Result: 0.15191 - Again, just Jaccard
-- Standard scaler with weights: 05-05-10-10-01-03-03-05-10-10-25-100 Result: - Do not punish low similarity (only count when score is > 0)
-
+- Standard scaler with weights: 05-05-10-10-01-03-03-05-10-10-25-100 Result: 0.159887 - Do not punish low similarity (only count when score is > 0)
+- Standard scaler with weights: 05-05-10-10-01-03-03-05-10-25-10-50-100 Result: 0.161194 - additional original jaccard + old 3 jaccard
 TODO:
 - Figuring out country restriction problem
 - Better weights for movies watched score instead of 1,2,3?
-- Get punnishment if score below 0.

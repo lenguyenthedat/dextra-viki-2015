@@ -15,11 +15,11 @@ pd.options.mode.chained_assignment = None
 sim_features = ['sim_gender', 'sim_country', 'sim_language',
                 'sim_adult', 'sim_content_owner_id', 'sim_broadcast',
                 'sim_episode_count', 'sim_genres', 'sim_cast',
-                'jaccard_1', 'jaccard_2', 'jaccard_3']
+                'jaccard', 'jaccard_1', 'jaccard_2', 'jaccard_3']
 weight_features = [5,5,10,
                    10,1,3,
                    3,5,10,
-                   10,25,100]
+                   25,10,50,100]
 ## ==================== Data preparation
 print "=> Reading data & Pre Processing"
 print datetime.datetime.now()
