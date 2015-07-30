@@ -16,10 +16,14 @@ sim_features = ['sim_gender', 'sim_country', 'sim_language',
                 'sim_adult', 'sim_content_owner_id', 'sim_broadcast',
                 'sim_episode_count', 'sim_genres', 'sim_cast',
                 'jaccard', 'jaccard_1', 'jaccard_2', 'jaccard_3']
-weight_features = [5,5,10,
-                   10,1,3,
-                   3,5,10,
-                   25,10,50,100]
+weight_features = [3,10,10,
+                   20,10,3,
+                   3,10,20,
+                   10,10,50,100]
+weight_scores = [1,2,3] # How important a video user watched affects his recommended videos
+                        # In order words, if A watch V1 for 5% (score = 1) of its duration, and V2 for 95% (score = 3) of its duration,
+                        # V2 will be `weight_score[2] / weight_score[0]` times more important than V1 in respect to A's recommendations
+
 ## ==================== Data preparation
 print "=> Reading data & Pre Processing"
 print datetime.datetime.now()
@@ -85,10 +89,8 @@ print "=> Combining matrixes"
 print datetime.datetime.now()
 user_history_videos_matrix = pd.merge(behaviors, videos_matrix, left_on=['video_id'], right_on=['video_id_left'])
 
-# TODO: better weight for this instead of directly using 1,2 and 3.
-# weighted_sim_combined
 def weighted_sim_combined(row):
-    return row['score'] * row['sim_combined']
+    return weight_scores[row['score']-1] * row['sim_combined']
 
 user_history_videos_matrix['weighted_sim_combined'] = user_history_videos_matrix.apply(weighted_sim_combined, axis=1)
 user_history_videos_matrix = user_history_videos_matrix.drop('score', 1)
@@ -141,7 +143,7 @@ print "=> Writing result to CSV"
 print datetime.datetime.now()
 if not os.path.exists('result/'):
     os.makedirs('result/')
-with open('./result/submit-'+'-'.join(str(x) for x in weight_features)+'.csv', 'w') as f:
+with open('./result/submit-'+'-'.join(str(x) for x in weight_features)+'-'+'-'.join(str(x) for x in weight_scores)+'.csv', 'w') as f:
     writer = csv.writer(f, lineterminator='\n')
     writer.writerow(submit1.columns)
     writer.writerows(submit1.values)
