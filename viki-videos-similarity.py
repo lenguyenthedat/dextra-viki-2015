@@ -173,41 +173,41 @@ def sim_cast(row):
 
 videos_matrix['sim_cast'] = videos_matrix.apply(sim_cast, axis=1)
 
-## ==================== CF similarity
-print "=> Calculating Jaccard indexes"
+## ==================== CF similarity # This might take ~2.5 hours or more to finish.
+print "=> Calculating Jaccard indexes #1"
 print datetime.datetime.now()
-
-def jaccard_1(row):
+def jaccard_1(row): # people who watch LEFT and find RIGHT not very interesting (but watched anyway).
     try:
-        left_1 = set([item for item in row['user_id_left'].split() if item.endswith('_1')])
+        left = set([item for item in row['user_id_left'].split()])
         right_1 = set([item for item in row['user_id_right'].split() if item.endswith('_1')])
-        return len(left_1&right_1) / len(left_1|right_1)
+        return len(left&right_1) / len(left|right_1)
     except:
         return 0
 
-# This might take ~2.5 hours or more to finish.
 videos_matrix['jaccard_1'] = videos_matrix.apply(jaccard_1, axis=1)
 
-def jaccard_2(row):
+print "=> Calculating Jaccard indexes #2"
+print datetime.datetime.now()
+def jaccard_2(row): # people who watched LEFT and find RIGHT quite interesting.
     try:
-        left_2 = set([item for item in row['user_id_left'].split() if item.endswith('_2')])
+        left = set([item for item in row['user_id_left'].split()])
         right_2 = set([item for item in row['user_id_right'].split() if item.endswith('_2')])
-        return len(left_2&right_2) / len(left_2|right_2)
+        return len(left&right_2) / len(left|right_2)
     except:
         return 0
 
-# This might take ~2.5 hours or more to finish.
 videos_matrix['jaccard_2'] = videos_matrix.apply(jaccard_2, axis=1)
 
-def jaccard_3(row):
+print "=> Calculating Jaccard indexes #3"
+print datetime.datetime.now()
+def jaccard_3(row): # people who watched LEFT and find RIGHT very interesting.
     try:
-        left_3 = set([item for item in row['user_id_left'].split() if item.endswith('_3')])
+        left = set([item for item in row['user_id_left'].split()])
         right_3 = set([item for item in row['user_id_right'].split() if item.endswith('_3')])
-        return len(left_3&right_3) / len(left_3|right_3)
+        return len(left&right_3) / len(left|right_3)
     except:
         return 0
 
-# This might take ~2.5 hours or more to finish.
 videos_matrix['jaccard_3'] = videos_matrix.apply(jaccard_3, axis=1)
 
 ## Output to CSV

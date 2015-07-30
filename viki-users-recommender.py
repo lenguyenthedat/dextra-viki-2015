@@ -60,7 +60,9 @@ print datetime.datetime.now()
 def sim_combined(row):
     score = 0
     for i in range(0, len(sim_features)):
-        score += row[sim_features[i]]*weight_features[i]
+        if sim_features[i] > 0: # with standard scaler, feature similarity can be below zero.
+                                # do not punish them in this case, esp. with jaccard scores.
+          score += row[sim_features[i]]*weight_features[i]
     return score
 
 videos_matrix['sim_combined'] = videos_matrix.apply(sim_combined, axis=1)
@@ -83,6 +85,7 @@ print "=> Combining matrixes"
 print datetime.datetime.now()
 user_history_videos_matrix = pd.merge(behaviors, videos_matrix, left_on=['video_id'], right_on=['video_id_left'])
 
+# TODO: better weight for this instead of directly using 1,2 and 3.
 # weighted_sim_combined
 def weighted_sim_combined(row):
     return row['score'] * row['sim_combined']
@@ -103,6 +106,9 @@ grouped_user_history_videos_matrix = pd.merge(grouped_user_history_videos_matrix
 
 grouped_user_history_videos_matrix = grouped_user_history_videos_matrix[grouped_user_history_videos_matrix.apply(lambda x: x['video_id_right'] not in x['video_ids'], axis=1)]
 grouped_user_history_videos_matrix = grouped_user_history_videos_matrix.drop('video_ids', 1) # user_id, video_id_right, weighted_sim_combined
+
+# Excluding blacklisted country
+# we have: customer - customer country - recommended video - recommended video countries
 
 # user - top3 videos (on user level now)
 grouped_user_history_videos_matrix = grouped_user_history_videos_matrix.sort(['weighted_sim_combined'], ascending=False).groupby('user_id').head(3)
