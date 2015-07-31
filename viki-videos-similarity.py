@@ -7,6 +7,7 @@ import numpy as np
 import os
 import datetime
 import re
+from sklearn.metrics.pairwise import cosine_similarity
 
 ## ==================== Data preparation
 print "=> Reading data"
@@ -172,6 +173,65 @@ def sim_cast(row):
         return 0
 
 videos_matrix['sim_cast'] = videos_matrix.apply(sim_cast, axis=1)
+
+# ============ Cosine Similarity - mv_ratio
+behaviors = pd.read_csv('./data/20150701094451-Behavior_training.csv')
+# user - video matrix
+behaviors_wide = pd.pivot_table(behaviors, values=["mv_ratio"],
+                         index=["video_id", "user_id"],
+                         aggfunc=np.mean).unstack()
+
+# any cells that are missing data (i.e. a user didn't buy a particular product)
+# we're going to set to 0
+behaviors_wide = behaviors_wide.fillna(0)
+
+# this is the key. we're going to use cosine_similarity from scikit-learn
+# to compute the distance between all beers
+print "calculating similarity"
+cosine_video_matrix = cosine_similarity(behaviors_wide)
+
+# stuff the distance matrix into a dataframe so it's easier to operate on
+cosine_video_matrix = pd.DataFrame(cosine_video_matrix, columns=behaviors_wide.index)
+
+# give the indicies (equivalent to rownames in R) the name of the product id
+cosine_video_matrix.index = cosine_video_matrix.columns
+
+def sim_cosine_mv_ratio(row):
+    return cosine_video_matrix[row['video_id_left']][row['video_id_right']]
+
+videos_matrix['sim_cosine_mv_ratio'] = videos_matrix.apply(sim_cosine_mv_ratio, axis=1)
+# =============
+
+# ============ Cosine Similarity - score
+behaviors = pd.read_csv('./data/20150701094451-Behavior_training.csv')
+# user - video matrix
+behaviors_wide = pd.pivot_table(behaviors, values=["score"],
+                         index=["video_id", "user_id"],
+                         aggfunc=np.mean).unstack()
+
+# any cells that are missing data (i.e. a user didn't buy a particular product)
+# we're going to set to 0
+behaviors_wide = behaviors_wide.fillna(0)
+
+# this is the key. we're going to use cosine_similarity from scikit-learn
+# to compute the distance between all beers
+print "calculating similarity"
+cosine_video_matrix = cosine_similarity(behaviors_wide)
+
+# stuff the distance matrix into a dataframe so it's easier to operate on
+cosine_video_matrix = pd.DataFrame(cosine_video_matrix, columns=behaviors_wide.index)
+
+# give the indicies (equivalent to rownames in R) the name of the product id
+cosine_video_matrix.index = cosine_video_matrix.columns
+
+def sim_cosine_score(row):
+    try:
+        return cosine_video_matrix[row['video_id_left']][row['video_id_right']]
+    except: # no data for row['video_id_left']
+        return 0
+
+videos_matrix['sim_cosine_score'] = videos_matrix.apply(sim_cosine_score, axis=1)
+# =============
 
 ## ==================== CF similarity # This might take ~2.5 hours or more to finish.
 print "=> Calculating Jaccard indexes #0"
