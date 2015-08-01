@@ -187,7 +187,8 @@ behaviors_wide = behaviors_wide.fillna(0)
 
 # this is the key. we're going to use cosine_similarity from scikit-learn
 # to compute the distance between all beers
-print "calculating similarity"
+print "===> Calculating similarity"
+print datetime.datetime.now()
 cosine_video_matrix = cosine_similarity(behaviors_wide)
 
 # stuff the distance matrix into a dataframe so it's easier to operate on
@@ -197,7 +198,10 @@ cosine_video_matrix = pd.DataFrame(cosine_video_matrix, columns=behaviors_wide.i
 cosine_video_matrix.index = cosine_video_matrix.columns
 
 def sim_cosine_mv_ratio(row):
-    return cosine_video_matrix[row['video_id_left']][row['video_id_right']]
+    try:
+        return cosine_video_matrix[row['video_id_left']][row['video_id_right']]
+    except: # no data for row['video_id_left']
+        return 0
 
 videos_matrix['sim_cosine_mv_ratio'] = videos_matrix.apply(sim_cosine_mv_ratio, axis=1)
 # =============
@@ -215,7 +219,8 @@ behaviors_wide = behaviors_wide.fillna(0)
 
 # this is the key. we're going to use cosine_similarity from scikit-learn
 # to compute the distance between all beers
-print "calculating similarity"
+print "===> Calculating similarity"
+print datetime.datetime.now()
 cosine_video_matrix = cosine_similarity(behaviors_wide)
 
 # stuff the distance matrix into a dataframe so it's easier to operate on
@@ -248,11 +253,11 @@ videos_matrix['jaccard'] = videos_matrix.apply(jaccard, axis=1)
 
 print "=> Calculating Jaccard indexes #1"
 print datetime.datetime.now()
-def jaccard_1(row): # people who find both LEFT and RIGHT not interesting (but watched anyway).
+def jaccard_1(row): # people who do not like LEFT but like RIGHT
     try:
         left_1 = set([item for item in row['user_id_left'].split() if item.endswith('_1')])
-        right_1 = set([item for item in row['user_id_right'].split() if item.endswith('_1')])
-        return len(left_1&right_1) / len(left_1|right_1)
+        right_3 = set([item for item in row['user_id_right'].split() if item.endswith('_3')])
+        return len(left_1&right_3) / len(left_1|right_3)
     except:
         return 0
 
@@ -260,11 +265,11 @@ videos_matrix['jaccard_1'] = videos_matrix.apply(jaccard_1, axis=1)
 
 print "=> Calculating Jaccard indexes #2"
 print datetime.datetime.now()
-def jaccard_2(row): # people who find both LEFT and RIGHT quite interesting.
+def jaccard_2(row): # people who kind of like LEFT and like RIGHT
     try:
         left_2 = set([item for item in row['user_id_left'].split() if item.endswith('_2')])
-        right_2 = set([item for item in row['user_id_right'].split() if item.endswith('_2')])
-        return len(left_2&right_2) / len(left_2|right_2)
+        right_3 = set([item for item in row['user_id_right'].split() if item.endswith('_3')])
+        return len(left_2&right_3) / len(left_2|right_3)
     except:
         return 0
 
@@ -272,7 +277,7 @@ videos_matrix['jaccard_2'] = videos_matrix.apply(jaccard_2, axis=1)
 
 print "=> Calculating Jaccard indexes #3"
 print datetime.datetime.now()
-def jaccard_3(row): # people who find both LEFT and RIGHT very interesting.
+def jaccard_3(row): # people who like LEFT and like RIGHT
     try:
         left_3 = set([item for item in row['user_id_left'].split() if item.endswith('_3')])
         right_3 = set([item for item in row['user_id_right'].split() if item.endswith('_3')])

@@ -15,11 +15,13 @@ pd.options.mode.chained_assignment = None
 sim_features = ['sim_gender', 'sim_country', 'sim_language',
                 'sim_adult', 'sim_content_owner_id', 'sim_broadcast',
                 'sim_episode_count', 'sim_genres', 'sim_cast',
+                'sim_cosine_mv_ratio', 'sim_cosine_score',
                 'jaccard', 'jaccard_1', 'jaccard_2', 'jaccard_3']
-weight_features = [3,10,10,
-                   20,10,3,
-                   3,10,20,
-                   10,10,50,100]
+weight_features = [0,0,0,
+                   0,0,0,
+                   0,0,0,
+                   0,0,
+                   0,50,50,50]
 weight_scores = [1,2,3] # How important a video user watched affects his recommended videos
                         # In order words, if A watch V1 for 5% (score = 1) of its duration, and V2 for 95% (score = 3) of its duration,
                         # V2 will be `weight_score[2] / weight_score[0]` times more important than V1 in respect to A's recommendations
@@ -82,6 +84,8 @@ videos_matrix = videos_matrix.drop('sim_cast', 1)
 videos_matrix = videos_matrix.drop('jaccard_1', 1)
 videos_matrix = videos_matrix.drop('jaccard_2', 1)
 videos_matrix = videos_matrix.drop('jaccard_3', 1)
+videos_matrix = videos_matrix.drop('sim_cosine_mv_ratio', 1)
+videos_matrix = videos_matrix.drop('sim_cosine_score', 1)
 # Top 5 similar videos to each video - 5 should be enough since we are only recommending 3 videos per person
 videos_matrix = videos_matrix.sort(['sim_combined'], ascending=False).groupby('video_id_left').head(5)
 
@@ -98,6 +102,8 @@ user_history_videos_matrix = user_history_videos_matrix.drop('video_id_left', 1)
 user_history_videos_matrix = user_history_videos_matrix.drop('sim_combined', 1)
 
 # group on user_level - video_id
+print "=> Combining matrixes - user video level"
+print datetime.datetime.now()
 grouped_user_history_videos_matrix = user_history_videos_matrix.groupby(['user_id', 'video_id_right'],as_index=False).aggregate(np.sum)
 
 # For filtering purpose (i.e do not recommend watched videos)
