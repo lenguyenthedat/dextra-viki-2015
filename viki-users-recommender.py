@@ -7,18 +7,15 @@ import csv
 import numpy as np
 import os
 import datetime
-import re
-
-# Remove pandas warning
-pd.options.mode.chained_assignment = None
+import math
 
 sim_features = ['sim_country', 'sim_language', 'sim_adult',
                 'sim_content_owner_id', 'sim_broadcast', 'sim_episode_count',
-                'sim_genres', 'sim_cast', 'hotness'
+                'sim_genres', 'sim_cast', 'hotness',
                 'jaccard_1_3', 'jaccard_2_3', 'jaccard_3_3']
-weight_features = [0,0,0
+weight_features = [0,0,0,
                    0,0,0,
-                   0,0,20,
+                   0,0,15,
                    50,50,50]
 weight_scores = [1,2,3] # How important a video user watched affects his recommended videos
                         # In order words, if A watch V1 for 5% (score = 1) of its duration, and V2 for 95% (score = 3) of its duration,
@@ -34,10 +31,22 @@ behaviors = behaviors.drop('date_hour', 1)
 behaviors = behaviors.drop('mv_ratio', 1)
 
 # Hot videos
-# Top 10, should be enough # remember to exclude from watched_videos later on
-# TODO: Remove similar from the top3 list. Make sure not recommending the same
-# Not too urgently - it's very rare that this happen, because someone has to have less than 3 recommendations.
-hot_videos = behaviors.groupby('video_id').agg(['count']).sort([('score', 'count')], ascending=False).head(10).index.tolist()
+videos_views = behaviors.groupby('video_id').agg(['count']).sort([('score', 'count')], ascending=False)
+videos = pd.read_csv('./data/20150701094451-Video_attributes.csv')
+
+def hotness(row): # How hot the RIGHT video is, regardless of the left one
+    try:
+        bf_date = datetime.datetime.strptime(row['broadcast_from'], "%Y-%m").date()
+        day_2015_02 = datetime.datetime.strptime('2015-02', "%Y-%m").date()
+        user_watched = videos_views[videos_views.index==row['video_id']].reset_index().score['count'][0]
+        return  user_watched / (day_2015_02-bf_date).days
+        # return  user_watched / math.pow((day_2015_02-bf_date).days,2)
+    except:
+        return 0
+
+videos['hotness'] = videos.apply(hotness, axis=1)
+
+hot_videos = videos.sort('hotness', ascending=False).video_id.tolist()
 # 50 Insignificant Videos that should be removed from the master videos_matrix
 not_hot_videos = behaviors.groupby('video_id').agg(['count']).sort([('score', 'count')], ascending=False).tail(50).index.tolist()
 
@@ -119,7 +128,7 @@ def recommendation(row):
   try:
     return row['recommendations'][row['count'] % 3]
   except:
-        return hot_videos[row['count'] % 3]
+    return hot_videos[row['count'] % 3]
 
 submit1['video_id'] = submit1.apply(recommendation, axis=1)
 submit2['video_id'] = submit2.apply(recommendation, axis=1)

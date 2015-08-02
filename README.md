@@ -43,42 +43,45 @@ Weights can be set manually:
 
 Submission history:
 
-- Standard scaler with weights: 10-10-05-01-01-01-05-05-20           Result: 0.1459
-- Standard scaler with weights: 10-10-05-01-01-01-02-02-10           Result: 0.135167
-- Standard scaler with weights: 10-10-10-03-03-03-10-10-40           Result: 0.145651
-- Standard scaler with weights: 10-10-10-03-03-03-10-10-10           Result: 0.0877144 => Jaccard is pretty good!
-- Min-Max  scaler with weights: 10-10-10-03-03-03-10-10-50           Result: 0.099632
-- Min-Max  scaler with weights: 10-05-05-03-03-03-05-05-20           Result: 0.0897612 => MinMax scaler doesn't really work very well does it?
-- Standard scaler with weights: 05-05-05-01-01-01-05-05-50           Result: 0.158367
-- Standard scaler with weights: 05-05-05-01-01-01-05-05-50           Result: 0.15737 (Tried hot_videos_m and hot_videos_f)
-- Standard scaler with weights: 05-05-05-01-01-01-05-10-80           Result: 0.160277
-- Standard scaler with weights: 00-00-00-00-00-00-00-00-01           Result: 0.1611 (jaccard alone)
-- Standard scaler with weights: 00-00-00-00-00-00-00-00-00-01-01-01  Result: 0.140996 - Added sim_gender & separated 3 jaccard scores.
-- Min-Max  scaler with weights: 00-00-00-00-00-00-00-00-00-01-05-25  Result: 0.15947
-- Standard scaler with weights: 05-05-10-10-01-03-03-05-10-10-25-100 Result: 0.16113 - Better scaling and feature similarity calculation
-- Standard scaler with weights: 05-05-10-10-01-03-03-05-10-10-30-90  Result: 0.155238 - Try (x,1), (x,2) and (x,3) score grouping instead of (x,x)
-- Standard scaler with weights: 05-05-10-10-01-03-03-05-10-15-30-45  Result: 0.150099
-- Standard scaler with weights: 05-05-10-10-01-03-03-05-10-0-100-200 Result: 0.152626
-- Standard scaler with weights: 05-05-10-10-01-03-03-05-10-10-20-40  Result: 0.151006
-- Standard scaler with weights: 00-00-00-00-00-00-00-00-00-10-50-100 Result: 0.15191 - Again, just Jaccard
-- Standard scaler with weights: 05-05-10-10-01-03-03-05-10-10-25-100 Result: 0.159887 - Do not punish low similarity (only count when score is > 0)
-- Standard scaler with weights: 05-05-10-10-01-03-03-05-10-25-10-50-100 Result: 0.161194 - additional original jaccard + old 3 jaccard
-- Standard scaler with weights: 05-05-10-10-01-03-03-05-10-25-10-75-195 Result: 0.160826
-- Standard scaler with weights: 05-05-10-10-01-03-03-05-10-10-10-50-100 Result: 0.156655
-- Standard scaler with weights: 03-10-10-20-10-03-03-10-20-10-10-50-100 Result: 0.162476 - better weights
-- Standard scaler with weights: 03-10-10-20-10-03-03-10-20-10-10-50-100-01-05-10 Result: 0.161676 - 1-2-3 seems better...
-- Standard scaler with weights: 03-10-10-20-10-03-03-10-20-10-10-50-100-01-01-01 Result: 0.159341 - 1-2-3 seems best...
-- Standard scaler with weights: 03-10-10-20-10-03-03-10-20-10-10-50-100-01-02-03 Result: 0.162476
-- Standard scaler with weights: 03-10-10-20-10-03-03-10-20-10-10-50-100-01-01-01 Result: 0.161225 - 1-1-1 but use mv_ratio too
-- Standard scaler with weights: 03-95-95-20-10-03-03-10-20-10-10-50-100-01-02-03 Result: 0.161059
-- Standard scaler with weights: 03-10-10-20-10-03-03-10-20-50-50-01-02-03        Result: 0.135354 - cosine similarity instead of jaccard
-- Standard scaler with weights: 03-10-10-20-10-03-03-10-20-100-00-01-02-03       Result: 0.148153 - cosine similarity (mv ratio) instead of jaccard
-- Standard scaler with weights: 03-10-10-20-10-03-03-10-20-00-100-01-02-03       Result: 0.125421 - cosine similarity (score) instead of jaccard
-- Standard scaler with weights: 00-00-00-00-00-00-00-00-00-100-00-01-02-03       Result: 0.148942 - cosine similarity (mv ratio) alone
-- Standard scaler with weights: 00-00-00-00-00-00-00-00-00-00-00-00-50-50-50-01-02-03 Result: 0.168689 - New Jaccard and only itself
-- Standard scaler with weights: 03-10-10-20-10-03-03-10-20-00-00-00-50-50-50-01-02-03 Result: 0.165453 - New Jaccard with other weights
-- Standard scaler with weights: 00-00-00-00-00-00-00-00-00-00-00-00-50-50-50-25-25-25-01-02-03  Result: 0.152911 - New Jaccard and only itself (wrong weightages)
-- Standard scaler with weights: 00-00-00-00-00-00-00-00-00-00-00-00-15-15-15-50-50-50-01-02-03  Result: 0.161728 - New Jaccard and only itself
+1- Standard scaler with weights: 10-10-05-01-01-01-05-05-20           Result: 0.1459
+2- Standard scaler with weights: 10-10-05-01-01-01-02-02-10           Result: 0.135167
+3- Standard scaler with weights: 10-10-10-03-03-03-10-10-40           Result: 0.145651
+4- Standard scaler with weights: 10-10-10-03-03-03-10-10-10           Result: 0.0877144 => Jaccard is pretty good!
+5- Min-Max  scaler with weights: 10-10-10-03-03-03-10-10-50           Result: 0.099632
+6- Min-Max  scaler with weights: 10-05-05-03-03-03-05-05-20           Result: 0.0897612 => MinMax scaler doesn't really work very well does it?
+7- Standard scaler with weights: 05-05-05-01-01-01-05-05-50           Result: 0.158367
+8- Standard scaler with weights: 05-05-05-01-01-01-05-05-50           Result: 0.15737 (Tried hot_videos_m and hot_videos_f)
+9- Standard scaler with weights: 05-05-05-01-01-01-05-10-80           Result: 0.160277
+10- Standard scaler with weights: 00-00-00-00-00-00-00-00-01           Result: 0.1611 (jaccard alone)
+11- Standard scaler with weights: 00-00-00-00-00-00-00-00-00-01-01-01  Result: 0.140996 - Added sim_gender & separated 3 jaccard scores.
+12- Min-Max  scaler with weights: 00-00-00-00-00-00-00-00-00-01-05-25  Result: 0.15947
+13- Standard scaler with weights: 05-05-10-10-01-03-03-05-10-10-25-100 Result: 0.16113 - Better scaling and feature similarity calculation
+14- Standard scaler with weights: 05-05-10-10-01-03-03-05-10-10-30-90  Result: 0.155238 - Try (x,1), (x,2) and (x,3) score grouping instead of (x,x)
+15- Standard scaler with weights: 05-05-10-10-01-03-03-05-10-15-30-45  Result: 0.150099
+16- Standard scaler with weights: 05-05-10-10-01-03-03-05-10-0-100-200 Result: 0.152626
+17- Standard scaler with weights: 05-05-10-10-01-03-03-05-10-10-20-40  Result: 0.151006
+18- Standard scaler with weights: 00-00-00-00-00-00-00-00-00-10-50-100 Result: 0.15191 - Again, just Jaccard
+19- Standard scaler with weights: 05-05-10-10-01-03-03-05-10-10-25-100 Result: 0.159887 - Do not punish low similarity (only count when score is > 0)
+20- Standard scaler with weights: 05-05-10-10-01-03-03-05-10-25-10-50-100 Result: 0.161194 - additional original jaccard + old 3 jaccard
+21- Standard scaler with weights: 05-05-10-10-01-03-03-05-10-25-10-75-195 Result: 0.160826
+22- Standard scaler with weights: 05-05-10-10-01-03-03-05-10-10-10-50-100 Result: 0.156655
+23- Standard scaler with weights: 03-10-10-20-10-03-03-10-20-10-10-50-100 Result: 0.162476 - better weights
+24- Standard scaler with weights: 03-10-10-20-10-03-03-10-20-10-10-50-100-01-05-10 Result: 0.161676 - 1-2-3 seems better...
+25- Standard scaler with weights: 03-10-10-20-10-03-03-10-20-10-10-50-100-01-01-01 Result: 0.159341 - 1-2-3 seems best...
+26- Standard scaler with weights: 03-10-10-20-10-03-03-10-20-10-10-50-100-01-02-03 Result: 0.162476
+27- Standard scaler with weights: 03-10-10-20-10-03-03-10-20-10-10-50-100-01-01-01 Result: 0.161225 - 1-1-1 but use mv_ratio too
+28- Standard scaler with weights: 03-95-95-20-10-03-03-10-20-10-10-50-100-01-02-03 Result: 0.161059
+29- Standard scaler with weights: 03-10-10-20-10-03-03-10-20-50-50-01-02-03        Result: 0.135354 - cosine similarity instead of jaccard
+30- Standard scaler with weights: 03-10-10-20-10-03-03-10-20-100-00-01-02-03       Result: 0.148153 - cosine similarity (mv ratio) instead of jaccard
+31- Standard scaler with weights: 03-10-10-20-10-03-03-10-20-00-100-01-02-03       Result: 0.125421 - cosine similarity (score) instead of jaccard
+32- Standard scaler with weights: 00-00-00-00-00-00-00-00-00-100-00-01-02-03       Result: 0.148942 - cosine similarity (mv ratio) alone
+33- Standard scaler with weights: 00-00-00-00-00-00-00-00-00-00-00-00-50-50-50-01-02-03 Result: 0.168689 - New Jaccard and only itself
+34- Standard scaler with weights: 03-10-10-20-10-03-03-10-20-00-00-00-50-50-50-01-02-03 Result: 0.165453 - New Jaccard with other weights
+35- Standard scaler with weights: 00-00-00-00-00-00-00-00-00-00-00-00-50-50-50-25-25-25-01-02-03  Result: 0.152911 - New Jaccard and only itself (wrong weightages)
+36- Standard scaler with weights: 00-00-00-00-00-00-00-00-00-00-00-00-15-15-15-50-50-50-01-02-03  Result: 0.161728 - New Jaccard and only itself
+37- Standard scaler with weights: 00-00-00-00-00-00-00-00-00-50-50-50-01-02-03 Result: 0.170228 - new hot video formula (#user / time^2)
+38- Standard scaler with weights: 00-00-00-00-00-00-00-00-00-50-50-50-01-02-03 Result: 0.172902 - new hot video formula (#user / time)
+
 # TODO
 - Figuring out country restriction problem -> might not be feasible for this challenge, since we do not know if a user is premium or not (premium users doesn't get regional blocked)
 - Time decay function -> might not be feasible for this challenge, since training data is all in a span of 3-4 months.

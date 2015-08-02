@@ -4,10 +4,8 @@ import pandas as pd
 import time
 import csv
 import numpy as np
-import os
 import datetime
 import re
-from sklearn.metrics.pairwise import cosine_similarity
 
 ## ==================== Data preparation
 print "=> Reading data"

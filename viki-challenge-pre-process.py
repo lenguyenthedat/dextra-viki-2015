@@ -1,8 +1,6 @@
 import pandas as pd
 from sklearn.preprocessing import LabelEncoder
 
-pd.options.mode.chained_assignment = None
-
 features_non_numeric = ['country','gender','container_id', 'origin_country',
                         'origin_language','adult','broadcast_from','broadcast_to',
                         'season_number','content_owner_id','genres']

@@ -10,8 +10,6 @@ from sknn.mlp import Regressor, Layer
 from sklearn.grid_search import GridSearchCV
 from xgboost import XGBRegressor
 
-pd.options.mode.chained_assignment = None
-
 sample = False
 gridsearch = False
 
