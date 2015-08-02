@@ -31,51 +31,12 @@ videos = pd.merge(videos, casts, on=['container_id'], how='left', suffixes=['_le
 behaviors = behaviors.groupby('video_id',as_index=False).agg(lambda x: ' '.join(x.user_id + '_' + x.score)).drop('score', 1)
 videos = pd.merge(videos, behaviors, on=['video_id'], how='left', suffixes=['_left', '_right'])
 
-## ==================== Feature "Engineering"
-# Added number of F and M who watched the video
-# TODO: tidy this up
-# Reload behaviors
-behaviors = pd.read_csv('./data/20150701094451-Behavior_training.csv')
-behaviors = pd.merge(behaviors, users, on=['user_id'], how='left')
-
-behaviors_f = behaviors[behaviors['gender'] == 'f']
-behaviors_f = behaviors_f.groupby('video_id',as_index=False).agg(['count'])
-behaviors_f = behaviors_f.drop('date_hour', 1).drop('mv_ratio', 1).drop('country',1).drop('user_id',1).drop('score', 1)
-behaviors_f['video_id'] = behaviors_f.index
-behaviors_f['users_f'] = behaviors_f.gender
-behaviors_f = behaviors_f.drop('gender',1).reset_index(drop=True)
-behaviors_f.columns = ['video_id','user_f']
-
-behaviors_m = behaviors[behaviors['gender'] == 'm']
-behaviors_m = behaviors_m.groupby('video_id',as_index=False).agg(['count'])
-behaviors_m = behaviors_m.drop('date_hour', 1).drop('mv_ratio', 1).drop('country',1).drop('user_id',1).drop('score', 1)
-behaviors_m['video_id'] = behaviors_m.index
-behaviors_m['users_f'] = behaviors_m.gender
-behaviors_m = behaviors_m.drop('gender',1).reset_index(drop=True)
-behaviors_m.columns = ['video_id','user_m']
-
-videos = pd.merge(videos, behaviors_f, on=['video_id'], how='left')
-videos = pd.merge(videos, behaviors_m, on=['video_id'], how='left')
-videos['f_rate'] = videos.apply (lambda row: row['user_f'] / (row['user_f'] + row['user_m']),axis=1)
-# Maybe later on we can do a country similarity as well, but that's probably too much
-
 ## ==================== Features similarity
 print "=> Features similarity"
 print datetime.datetime.now()
 videos['dummy'] = 1
 videos_matrix = pd.merge(videos, videos, on=['dummy'], suffixes=['_left', '_right'])
 videos_matrix = videos_matrix.drop('dummy', 1)
-
-print "===> Gender"
-print datetime.datetime.now()
-# casts / person_id
-def sim_gender(row):
-    if (row['f_rate_left'] > 0 and row['f_rate_right'] > 0 ):
-        return 1 - (abs(row['f_rate_left'] - row['f_rate_right']))
-    else:
-        return 0
-
-videos_matrix['sim_gender'] = videos_matrix.apply(sim_gender, axis=1)
 
 print "===> Country"
 print datetime.datetime.now()
@@ -174,86 +135,24 @@ def sim_cast(row):
 
 videos_matrix['sim_cast'] = videos_matrix.apply(sim_cast, axis=1)
 
-# ============ Cosine Similarity - mv_ratio
-behaviors = pd.read_csv('./data/20150701094451-Behavior_training.csv')
-# user - video matrix
-behaviors_wide = pd.pivot_table(behaviors, values=["mv_ratio"],
-                         index=["video_id", "user_id"],
-                         aggfunc=np.mean).unstack()
-
-# any cells that are missing data (i.e. a user didn't buy a particular product)
-# we're going to set to 0
-behaviors_wide = behaviors_wide.fillna(0)
-
-# this is the key. we're going to use cosine_similarity from scikit-learn
-# to compute the distance between all beers
-print "===> Calculating similarity"
+## ==================== Hot-ness
+print "=> Calculate hotness of the RIGHT video"
 print datetime.datetime.now()
-cosine_video_matrix = cosine_similarity(behaviors_wide)
-
-# stuff the distance matrix into a dataframe so it's easier to operate on
-cosine_video_matrix = pd.DataFrame(cosine_video_matrix, columns=behaviors_wide.index)
-
-# give the indicies (equivalent to rownames in R) the name of the product id
-cosine_video_matrix.index = cosine_video_matrix.columns
-
-def sim_cosine_mv_ratio(row):
+def hotness(row): # How hot the RIGHT video is, regardless of the left one
     try:
-        return cosine_video_matrix[row['video_id_left']][row['video_id_right']]
-    except: # no data for row['video_id_left']
-        return 0
-
-videos_matrix['sim_cosine_mv_ratio'] = videos_matrix.apply(sim_cosine_mv_ratio, axis=1)
-# =============
-
-# ============ Cosine Similarity - score
-behaviors = pd.read_csv('./data/20150701094451-Behavior_training.csv')
-# user - video matrix
-behaviors_wide = pd.pivot_table(behaviors, values=["score"],
-                         index=["video_id", "user_id"],
-                         aggfunc=np.mean).unstack()
-
-# any cells that are missing data (i.e. a user didn't buy a particular product)
-# we're going to set to 0
-behaviors_wide = behaviors_wide.fillna(0)
-
-# this is the key. we're going to use cosine_similarity from scikit-learn
-# to compute the distance between all beers
-print "===> Calculating similarity"
-print datetime.datetime.now()
-cosine_video_matrix = cosine_similarity(behaviors_wide)
-
-# stuff the distance matrix into a dataframe so it's easier to operate on
-cosine_video_matrix = pd.DataFrame(cosine_video_matrix, columns=behaviors_wide.index)
-
-# give the indicies (equivalent to rownames in R) the name of the product id
-cosine_video_matrix.index = cosine_video_matrix.columns
-
-def sim_cosine_score(row):
-    try:
-        return cosine_video_matrix[row['video_id_left']][row['video_id_right']]
-    except: # no data for row['video_id_left']
-        return 0
-
-videos_matrix['sim_cosine_score'] = videos_matrix.apply(sim_cosine_score, axis=1)
-# =============
-
-## ==================== CF similarity # This might take ~2.5 hours or more to finish.
-print "=> Calculating Jaccard indexes #0"
-print datetime.datetime.now()
-def jaccard(row): # people who watch LEFT and right
-    try:
-        left = set([item for item in row['user_id_left'].split()])
-        right = set([item for item in row['user_id_right'].split()])
-        return len(left&right) / len(left|right)
+        bfr_date = datetime.datetime.strptime(row['broadcast_from_right'], "%Y-%m").date()
+        day_2015_02 = datetime.datetime.strptime('2015-02', "%Y-%m").date()
+        user_watched = len(row['user_id_right'].split())
+        return  user_watched / (day_2015_02-bfr_date).days
     except:
         return 0
 
-videos_matrix['jaccard'] = videos_matrix.apply(jaccard, axis=1)
+videos_matrix['hotness'] = videos_matrix.apply(hotness, axis=1)
 
-print "=> Calculating Jaccard indexes #1"
+## ==================== CF similarity # This might take ~2.5 hours or more to finish.
+print "=> Calculating Jaccard indexes #1-3"
 print datetime.datetime.now()
-def jaccard_1(row): # people who do not like LEFT but like RIGHT
+def jaccard_1_3(row): # people who do not like LEFT but like RIGHT
     try:
         left_1 = set([item for item in row['user_id_left'].split() if item.endswith('_1')])
         right_3 = set([item for item in row['user_id_right'].split() if item.endswith('_3')])
@@ -261,11 +160,11 @@ def jaccard_1(row): # people who do not like LEFT but like RIGHT
     except:
         return 0
 
-videos_matrix['jaccard_1'] = videos_matrix.apply(jaccard_1, axis=1)
+videos_matrix['jaccard_1_3'] = videos_matrix.apply(jaccard_1_3, axis=1)
 
-print "=> Calculating Jaccard indexes #2"
+print "=> Calculating Jaccard indexes #2-3"
 print datetime.datetime.now()
-def jaccard_2(row): # people who kind of like LEFT and like RIGHT
+def jaccard_2_3(row): # people who kind of like LEFT and like RIGHT
     try:
         left_2 = set([item for item in row['user_id_left'].split() if item.endswith('_2')])
         right_3 = set([item for item in row['user_id_right'].split() if item.endswith('_3')])
@@ -273,11 +172,11 @@ def jaccard_2(row): # people who kind of like LEFT and like RIGHT
     except:
         return 0
 
-videos_matrix['jaccard_2'] = videos_matrix.apply(jaccard_2, axis=1)
+videos_matrix['jaccard_2_3'] = videos_matrix.apply(jaccard_2_3, axis=1)
 
-print "=> Calculating Jaccard indexes #3"
+print "=> Calculating Jaccard indexes #3-3"
 print datetime.datetime.now()
-def jaccard_3(row): # people who like LEFT and like RIGHT
+def jaccard_3_3(row): # people who like LEFT and like RIGHT
     try:
         left_3 = set([item for item in row['user_id_left'].split() if item.endswith('_3')])
         right_3 = set([item for item in row['user_id_right'].split() if item.endswith('_3')])
@@ -285,7 +184,7 @@ def jaccard_3(row): # people who like LEFT and like RIGHT
     except:
         return 0
 
-videos_matrix['jaccard_3'] = videos_matrix.apply(jaccard_3, axis=1)
+videos_matrix['jaccard_3_3'] = videos_matrix.apply(jaccard_3_3, axis=1)
 
 ## Output to CSV
 print "=> Out to CSV"

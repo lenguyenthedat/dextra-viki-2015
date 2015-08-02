@@ -12,16 +12,14 @@ import re
 # Remove pandas warning
 pd.options.mode.chained_assignment = None
 
-sim_features = ['sim_gender', 'sim_country', 'sim_language',
-                'sim_adult', 'sim_content_owner_id', 'sim_broadcast',
-                'sim_episode_count', 'sim_genres', 'sim_cast',
-                'sim_cosine_mv_ratio', 'sim_cosine_score',
-                'jaccard', 'jaccard_1', 'jaccard_2', 'jaccard_3']
-weight_features = [0,0,0,
+sim_features = ['sim_country', 'sim_language', 'sim_adult',
+                'sim_content_owner_id', 'sim_broadcast', 'sim_episode_count',
+                'sim_genres', 'sim_cast', 'hotness'
+                'jaccard_1_3', 'jaccard_2_3', 'jaccard_3_3']
+weight_features = [0,0,0
                    0,0,0,
-                   0,0,0,
-                   0,0,
-                   0,50,50,50]
+                   0,0,20,
+                   50,50,50]
 weight_scores = [1,2,3] # How important a video user watched affects his recommended videos
                         # In order words, if A watch V1 for 5% (score = 1) of its duration, and V2 for 95% (score = 3) of its duration,
                         # V2 will be `weight_score[2] / weight_score[0]` times more important than V1 in respect to A's recommendations
@@ -29,7 +27,6 @@ weight_scores = [1,2,3] # How important a video user watched affects his recomme
 ## ==================== Data preparation
 print "=> Reading data & Pre Processing"
 print datetime.datetime.now()
-
 
 # Behavior
 behaviors = pd.read_csv('./data/20150701094451-Behavior_training.csv')
@@ -72,20 +69,6 @@ def sim_combined(row):
     return score
 
 videos_matrix['sim_combined'] = videos_matrix.apply(sim_combined, axis=1)
-videos_matrix = videos_matrix.drop('sim_country', 1)
-videos_matrix = videos_matrix.drop('sim_language', 1)
-videos_matrix = videos_matrix.drop('sim_adult', 1)
-videos_matrix = videos_matrix.drop('sim_content_owner_id', 1)
-videos_matrix = videos_matrix.drop('sim_broadcast', 1)
-videos_matrix = videos_matrix.drop('sim_season', 1)
-videos_matrix = videos_matrix.drop('sim_episode_count', 1)
-videos_matrix = videos_matrix.drop('sim_genres', 1)
-videos_matrix = videos_matrix.drop('sim_cast', 1)
-videos_matrix = videos_matrix.drop('jaccard_1', 1)
-videos_matrix = videos_matrix.drop('jaccard_2', 1)
-videos_matrix = videos_matrix.drop('jaccard_3', 1)
-videos_matrix = videos_matrix.drop('sim_cosine_mv_ratio', 1)
-videos_matrix = videos_matrix.drop('sim_cosine_score', 1)
 # Top 5 similar videos to each video - 5 should be enough since we are only recommending 3 videos per person
 videos_matrix = videos_matrix.sort(['sim_combined'], ascending=False).groupby('video_id_left').head(5)
 

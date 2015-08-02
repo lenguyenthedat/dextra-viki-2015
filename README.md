@@ -75,8 +75,10 @@ Submission history:
 - Standard scaler with weights: 03-10-10-20-10-03-03-10-20-100-00-01-02-03       Result: 0.148153 - cosine similarity (mv ratio) instead of jaccard
 - Standard scaler with weights: 03-10-10-20-10-03-03-10-20-00-100-01-02-03       Result: 0.125421 - cosine similarity (score) instead of jaccard
 - Standard scaler with weights: 00-00-00-00-00-00-00-00-00-100-00-01-02-03       Result: 0.148942 - cosine similarity (mv ratio) alone
-- Standard scaler with weights: 00-00-00-00-00-00-00-00-00-00-00-00-50-50-50-01-02-03 Result: 0.168689 - Neu Jaccard and only itself
-
+- Standard scaler with weights: 00-00-00-00-00-00-00-00-00-00-00-00-50-50-50-01-02-03 Result: 0.168689 - New Jaccard and only itself
+- Standard scaler with weights: 03-10-10-20-10-03-03-10-20-00-00-00-50-50-50-01-02-03 Result: 0.165453 - New Jaccard with other weights
+- Standard scaler with weights: 00-00-00-00-00-00-00-00-00-00-00-00-50-50-50-25-25-25-01-02-03  Result: 0.152911 - New Jaccard and only itself (wrong weightages)
+- Standard scaler with weights: 00-00-00-00-00-00-00-00-00-00-00-00-15-15-15-50-50-50-01-02-03  Result: 0.161728 - New Jaccard and only itself
 # TODO
 - Figuring out country restriction problem -> might not be feasible for this challenge, since we do not know if a user is premium or not (premium users doesn't get regional blocked)
 - Time decay function -> might not be feasible for this challenge, since training data is all in a span of 3-4 months.
