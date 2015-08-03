@@ -81,6 +81,10 @@ Submission history:
 36- Standard scaler with weights: 00-00-00-00-00-00-00-00-00-00-00-00-15-15-15-50-50-50-01-02-03  Result: 0.161728 - New Jaccard and only itself
 37- Standard scaler with weights: 00-00-00-00-00-00-00-00-00-50-50-50-01-02-03 Result: 0.170228 - new hot video formula (#user / time^2)
 38- Standard scaler with weights: 00-00-00-00-00-00-00-00-00-50-50-50-01-02-03 Result: 0.172902 - new hot video formula (#user / time)
+39- Standard scaler with weights: 00-00-00-00-00-00-00-00-15-50-50-50-01-02-03 Result: 0.188361 - Weight hot videos higher.
+40- Standard scaler with weights: 00-00-00-00-00-00-00-00-05-50-50-50-01-02-03 Result: 0.175524 - Well, hot videos are really important.
+41- Only hot videos                                                            Result: 0.197173 - Damn
+
 
 # TODO
 - Figuring out country restriction problem -> might not be feasible for this challenge, since we do not know if a user is premium or not (premium users doesn't get regional blocked)
