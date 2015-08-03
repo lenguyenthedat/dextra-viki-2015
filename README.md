@@ -84,7 +84,17 @@ Submission history:
 39- Standard scaler with weights: 00-00-00-00-00-00-00-00-15-50-50-50-01-02-03 Result: 0.188361 - Weight hot videos higher.
 40- Standard scaler with weights: 00-00-00-00-00-00-00-00-05-50-50-50-01-02-03 Result: 0.175524 - Well, hot videos are really important.
 41- Only hot videos                                                            Result: 0.197173 - Damn
-
+42- Only hot videos (filter by score==3)                                       Result: 0.187228
+43- 00-00-00-00-00-00-00-00-50-50-50-50-01-02-03 Result: 0.194124 - Refactoring
+44- 50-00-00-00-00-00-00-00-50-10-25-50-01-02-03 Result: 0.191452
+45- 00-00-00-00-00-00-00-00-50-10-25-50-01-02-03 Result: 0.194124
+46- 01-00-00-00-00-00-00-00-01-00-00-01-01-02-03 Result: 0.191452
+47- 00-00-00-00-00-00-00-00-00-05-15-35-01-02-03 Result: 0.181584 - limit video-matrix to include top 20 videos only (bugged)
+48- 00-00-00-00-00-00-00-00-00-00-00-01-01-02-03 Result: 0.181584 - bugged
+49- 00-00-00-00-00-00-00-00-00-00-00-01-01-02-03 Result: 0.176865 - filtering bug
+50- 00-00-00-00-00-00-00-00-01-01-03-05-01-02-03 Result: 0.181028 - filtering bug
+51- 00-00-00-00-00-00-00-00-00-01-03-05-01-02-03 Result: 0.176821 - jaccard on only top 20 (unless user already viewed all of them) bug fixed
+52- 00-00-00-00-00-00-00-00-00-00-00-01-01-02-03 Result: 0.179890 - jaccard_3 on only top 10 (unless user already viewed all of them) bug fixed
 
 # TODO
 - Figuring out country restriction problem -> might not be feasible for this challenge, since we do not know if a user is premium or not (premium users doesn't get regional blocked)
