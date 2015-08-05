@@ -9,17 +9,16 @@ import os
 import datetime
 import math
 
+top_videos_limit = 20
 sim_features = ['sim_country', 'sim_language', 'sim_adult',
                 'sim_content_owner_id', 'sim_broadcast', 'sim_episode_count',
                 'sim_genres', 'sim_cast',
                 'jaccard_1_3', 'jaccard_2_3', 'jaccard_3_3']
-
 weight_features = [0,0,0,
                    0,0,0,
                    0,0,
-                   1,3,5]
-
-weight_scores = [1,2,3]
+                   0,0,0]
+weight_scores = [0,0,0]
 """ weight_scores:
 How important a video user watched affects his recommended videos
 In order words, if A watch V1 for 5% (score = 1) of its duration, and V2 for 95% (score = 3) of its duration,
@@ -34,22 +33,22 @@ def read_data():
         0    759744      TV003       1
         1    759744      TV015       2
         >>> videos[:2]
-          video_id broadcast_from
-        0    TV001           None
-        1    TV002        2013-06
+               date_hour video_id
+        0  2014-10-01T00    TV001
+        1  2014-10-09T16    TV002
         >>> videos_matrix[:2]
-               video_id_left video_id_right  sim_combined
-        287379         TV462          TV177   1947.746013
-        287206         TV462          TV004   1947.746013
+               video_id_left video_id_right   hotness  sim_combined
+        110109         TV177          TV462  0.000004     97.387301
+        287206         TV462          TV004  0.000007     97.387301
     """
     behaviors = pd.read_csv('./data/20150701094451-Behavior_training.csv')
-    videos = pd.read_csv('./data/20150701094451-Video_attributes.csv')
     videos_matrix = pd.read_csv('./data/videos_similarity_matrix.csv')
+    # video_id and its min date_hour
+    videos = behaviors.groupby('video_id').agg({'date_hour': np.min})
+    videos['video_id'] = videos.index
+    videos = videos.reset_index(drop=True)
     # Remove unused columns
     behaviors = behaviors.drop(['date_hour','mv_ratio'], 1)
-    videos = videos.drop(['container_id','origin_country','origin_language','adult',
-                          'broadcast_to','season_number','content_owner_id','genres',
-                          'episode_count'], 1)
     # Pre-process videos_matrix
     videos_matrix = videos_matrix[videos_matrix['video_id_left'] != videos_matrix['video_id_right']]
     # Feature scaling:
@@ -70,6 +69,8 @@ def read_data():
             # do not punish them in this case, esp. with jaccard scores.
         return score
     videos_matrix['sim_combined'] = videos_matrix.apply(sim_combined, axis=1)
+    # only take those with score > 0
+    videos_matrix = videos_matrix[videos_matrix['sim_combined'] > 0]
     # Top 5 similar videos to each video - 5 should be enough since we are only recommending 3 videos per person
     videos_matrix = videos_matrix.sort(['sim_combined'], ascending=False).groupby('video_id_left').head(5)
     videos_matrix = videos_matrix.drop(['sim_country', 'sim_language', 'sim_adult', 'sim_content_owner_id',
@@ -88,10 +89,10 @@ def unwatched_hot_videos(behaviors, videos):
     videos_views = behaviors.groupby('video_id').agg(['count']).sort([('score', 'count')], ascending=False)
     def hotness(row):
         try:
-            bf_date = datetime.datetime.strptime(row['broadcast_from'], "%Y-%m").date()
-            day_2015_02 = datetime.datetime.strptime('2015-02', "%Y-%m").date()
+            first_date = datetime.datetime.strptime(row['date_hour'],"%Y-%m-%dT%H").date()
+            last_date = datetime.datetime.strptime('2015-01-31', "%Y-%m-%d").date()
             user_watched = videos_views[videos_views.index==row['video_id']].reset_index().score['count'][0]
-            return  user_watched / (day_2015_02-bf_date).days
+            return  user_watched / (last_date-first_date).days
         except:
             return 0
     videos['hotness'] = videos.apply(hotness, axis=1)
@@ -113,21 +114,21 @@ def combined_scores(behaviors,videos_matrix,hot_videos):
         >>> user_combined_scores = combined_scores(behaviors,videos_matrix)
         >>> user_combined_scores[:3]
                        recommendations  user_id
-        user_id                                
-        23183    [TV004, TV177, TV461]    23183
-        169261          [TV462, TV004]   169261
-        762169   [TV004, TV177, TV461]   762169
+        0        [TV004, TV177, TV461]    23183
+        1               [TV462, TV004]   169261
+        2        [TV004, TV177, TV461]   762169
     """
-    # remove videos not in top 20
-    videos_matrix = videos_matrix[[x in hot_videos[:20] for x in videos_matrix['video_id_right']]]
-    user_history_videos_matrix = pd.merge(behaviors, videos_matrix, left_on=['video_id'], right_on=['video_id_left'])
+    if videos_matrix.empty:
+        user_history_videos_matrix = behaviors.reindex_axis(behaviors.columns.union(videos_matrix.columns), axis=1)
+    else:
+        # remove videos not in `top_videos_limit`
+        videos_matrix = videos_matrix[[x in hot_videos[:top_videos_limit] for x in videos_matrix['video_id_right']]]
+        user_history_videos_matrix = pd.merge(behaviors, videos_matrix, left_on=['video_id'], right_on=['video_id_left'])
     def weighted_sim_combined(row):
         #TODO: factor in time decay also
         return weight_scores[row['score']-1] * row['sim_combined']
     user_history_videos_matrix['weighted_sim_combined'] = user_history_videos_matrix.apply(weighted_sim_combined, axis=1)
-    user_history_videos_matrix = user_history_videos_matrix.drop('score', 1)
-    user_history_videos_matrix = user_history_videos_matrix.drop('video_id_left', 1)
-    user_history_videos_matrix = user_history_videos_matrix.drop('sim_combined', 1)
+    user_history_videos_matrix = user_history_videos_matrix.drop(['score','video_id_left','sim_combined'], 1)
     user_combined_scores = user_history_videos_matrix.groupby(
         ['user_id', 'video_id_right'],as_index=False).agg(
             {'weighted_sim_combined' : np.sum,'hotness' : np.mean})
@@ -136,14 +137,21 @@ def combined_scores(behaviors,videos_matrix,hot_videos):
     grouped_behaviors = pd.DataFrame({ 'video_ids' : behaviors.groupby('user_id').apply(lambda x: list(x.video_id))}) # user_id, list_of_video_ids
     grouped_behaviors['user_id'] = grouped_behaviors.index
     user_combined_scores = pd.merge(user_combined_scores, grouped_behaviors, on=['user_id'])
-    user_combined_scores = user_combined_scores[user_combined_scores.apply(lambda x: x['video_id_right'] not in x['video_ids'], axis=1)]
+    try:
+        user_combined_scores = user_combined_scores[user_combined_scores.apply(lambda x: x['video_id_right'] not in x['video_ids'], axis=1)]
+    except: # empty dataframe
+        pass
     user_combined_scores = user_combined_scores.drop('video_ids', 1) # user_id, video_id_right, weighted_sim_combined
     # produce result: user - top 3 videos (one entry per user)
     user_combined_scores['weighted_sim_combined'] = user_combined_scores['weighted_sim_combined'] * user_combined_scores['hotness']
     user_combined_scores = user_combined_scores.sort(['weighted_sim_combined'], ascending=False).groupby('user_id').head(3)
-    user_combined_scores = pd.DataFrame({ 'recommendations' : user_combined_scores.groupby('user_id').apply(lambda x: list(x.video_id_right))})
-    user_combined_scores['user_id'] = user_combined_scores.index
-    return user_combined_scores
+    try:
+        user_combined_scores = pd.DataFrame({ 'recommendations' : user_combined_scores.groupby('user_id').apply(lambda x: list(x.video_id_right))})
+        user_combined_scores['user_id'] = user_combined_scores.index
+    except: # empty dataframe
+        user_combined_scores=user_combined_scores.drop(['video_id_right', 'hotness'],1)
+        user_combined_scores.columns = ['recommendations','user_id']
+    return user_combined_scores.reset_index(drop=True)
 
 def processing_recommendations(user_combined_scores,users_hot_videos,hot_videos):
     # separated by '-1,DEXTRA' and '-2,DEXTRA' (removed, otherwise we can't use `row['count'] % 3` below)

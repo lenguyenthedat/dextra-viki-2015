@@ -102,17 +102,6 @@ def feature_similarity(videos):
         except:
             return 0
     videos_matrix['sim_cast'] = videos_matrix.apply(sim_cast, axis=1)
-    # Hotness
-    def hotness(row): # How hot the RIGHT video is, regardless of the left one
-        try:
-            bfr_date = datetime.datetime.strptime(row['broadcast_from_right'], "%Y-%m").date()
-            day_2015_02 = datetime.datetime.strptime('2015-02', "%Y-%m").date()
-            user_watched = len(row['user_id_right'].split())
-            return  user_watched / (day_2015_02-bfr_date).days
-        except:
-            return 0
-    videos_matrix['hotness'] = videos_matrix.apply(hotness, axis=1)
-    return videos_matrix
 
 def jaccard_similarity(videos_matrix):
     print "=> Calculating Jaccard indexes #1-3"

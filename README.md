@@ -98,3 +98,9 @@ Submission history:
 # TODO
 - Figuring out country restriction problem -> might not be feasible for this challenge, since we do not know if a user is premium or not (premium users doesn't get regional blocked)
 - Time decay function -> might not be feasible for this challenge, since training data is all in a span of 3-4 months.
+
+The reason why HOT VIDEOS dominated CF is because viki's homepage currently dominated by:
+- Top banner
+- Popular show
+- Top Drama
+
