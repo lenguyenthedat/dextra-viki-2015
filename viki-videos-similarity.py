@@ -102,6 +102,7 @@ def feature_similarity(videos):
         except:
             return 0
     videos_matrix['sim_cast'] = videos_matrix.apply(sim_cast, axis=1)
+    return videos_matrix
 
 def jaccard_similarity(videos_matrix):
     print "=> Calculating Jaccard indexes #1-3"
