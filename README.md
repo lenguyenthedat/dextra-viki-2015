@@ -15,26 +15,25 @@ This solution is 100% Python, below are a few libraries needed:
 
 # Collaborative Filtering (Jaccard Index) plus feature similarity
 
-    $ python viki-videos-similarity.py # Pre-procesing `#videos x #videos` matrix, roughly 2.5 hours
+    $ python viki-videos-similarity.py # Pre-procesing `#videos x #videos` matrix, roughly 1.5 hours
 
 Then run recommender with either one of these
 
-    $ python viki-users-recommender.py # batch process - 30 mins
+    $ python viki-users-recommender.py # batch process - 20 mins
 
 This is more practical since `#videos x #videos` matrix is much smaller.
 Weights can be set manually:
 
+    top_videos_limit = 20
     sim_features = ['sim_country', 'sim_language', 'sim_adult',
                     'sim_content_owner_id', 'sim_broadcast', 'sim_episode_count',
-                    'sim_genres', 'sim_cast', 'hotness',
+                    'sim_genres', 'sim_cast',
                     'jaccard_1_3', 'jaccard_2_3', 'jaccard_3_3']
-
     weight_features = [0,0,0,
                        0,0,0,
-                       0,0,0,
-                       1,3,5]
-
-    weight_scores = [1,2,3]
+                       0,0,
+                       0,0,0]
+    weight_scores = [0,0,0]
 
 Submission history:
 
@@ -94,6 +93,10 @@ Submission history:
 54- 00-00-00-00-00-00-00-00-01-03-05-01-02-03 Result: 0.190801 (top 20 only)
 55- 00-00-00-00-00-00-00-00-01-03-05-01-02-03 Result: 0.192084 (top 10 only)
 56- 01-01-01-00-00-00-01-01-00-01-03-00-01-03 Result: 0.191566
+57- new hot videos                            Result: 0.201594
+58- new hot videos (only count score= 2 or 3) Result: 0.202451
+59- new hot videos (score= 2 or 3, sqrt)      Result: 0.181191
+60- new hot videos (score= 2 or 3, pow 2)     Result: 0.189585
 
 # TODO
 - Figuring out country restriction problem -> might not be feasible for this challenge, since we do not know if a user is premium or not (premium users doesn't get regional blocked)

@@ -86,12 +86,14 @@ def unwatched_hot_videos(behaviors, videos):
         0   1        [TV001, TV419, TV412, TV413, TV414, TV415, TV4...
         1   3        [TV001, TV419, TV412, TV413, TV414, TV415, TV4...
     """
-    videos_views = behaviors.groupby('video_id').agg(['count']).sort([('score', 'count')], ascending=False)
+    # Only care about behaviors with score 2 or 3
+    behaviors_high = behaviors[behaviors['score']>1]
+    videos_views_high = behaviors_high.groupby('video_id').agg(['count']).sort([('score', 'count')], ascending=False)
     def hotness(row):
         try:
             first_date = datetime.datetime.strptime(row['date_hour'],"%Y-%m-%dT%H").date()
             last_date = datetime.datetime.strptime('2015-01-31', "%Y-%m-%d").date()
-            user_watched = videos_views[videos_views.index==row['video_id']].reset_index().score['count'][0]
+            user_watched = videos_views_high[videos_views_high.index==row['video_id']].reset_index().score['count'][0]
             return  user_watched / (last_date-first_date).days
         except:
             return 0
