@@ -90,6 +90,10 @@ Submission history:
 50- 00-00-00-00-00-00-00-00-01-01-03-05-01-02-03 Result: 0.181028 - filtering bug
 51- 00-00-00-00-00-00-00-00-00-01-03-05-01-02-03 Result: 0.176821 - jaccard on only top 20 (unless user already viewed all of them) bug fixed
 52- 00-00-00-00-00-00-00-00-00-00-00-01-01-02-03 Result: 0.179890 - jaccard_3 on only top 10 (unless user already viewed all of them) bug fixed
+53- 00-00-00-00-00-00-00-00-01-03-05-01-02-03 Result: 0.189109 (top 100 only) - factor in hotness properly
+54- 00-00-00-00-00-00-00-00-01-03-05-01-02-03 Result: 0.190801 (top 20 only)
+55- 00-00-00-00-00-00-00-00-01-03-05-01-02-03 Result: 0.192084 (top 10 only)
+56- 01-01-01-00-00-00-01-01-00-01-03-00-01-03 Result: 0.191566
 
 # TODO
 - Figuring out country restriction problem -> might not be feasible for this challenge, since we do not know if a user is premium or not (premium users doesn't get regional blocked)
