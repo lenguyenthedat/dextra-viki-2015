@@ -13,15 +13,7 @@ This solution is 100% Python, below are a few libraries needed:
 - Pandas
 - Scikit-learn, xgboost, scikit-neuralnetwork
 
-# First version: Tradditional Regression model (NeuralNet / RandomForest / GradientBoosting / XGBoosting)
-
-    $ python viki-challenge-pre-process.py
-    $ python viki-challenge-ml.py
-
-Doesn't work very well, running on real test set (`#users x #videos` matrix) took forever.
-Trained model can achieve RMSE ~ 48 (for `mv_ratio` as goal).
-
-# Second version: Collaborative Filtering (Jaccard Index) plus feature similarity
+# Collaborative Filtering (Jaccard Index) plus feature similarity
 
     $ python viki-videos-similarity.py # Pre-procesing `#videos x #videos` matrix, roughly 2.5 hours
 
@@ -32,14 +24,17 @@ Then run recommender with either one of these
 This is more practical since `#videos x #videos` matrix is much smaller.
 Weights can be set manually:
 
-    sim_features    = ['sim_gender', 'sim_country', 'sim_language',
-                       'sim_adult', 'sim_content_owner_id', 'sim_broadcast',
-                       'sim_episode_count', 'sim_genres', 'sim_cast',
-                       'jaccard', jaccard_1', 'jaccard_2', 'jaccard_3']
-    weight_features = [5,5,10,
-                       10,1,3,
-                       3,5,10,
-                       10,10,25,100]
+    sim_features = ['sim_country', 'sim_language', 'sim_adult',
+                    'sim_content_owner_id', 'sim_broadcast', 'sim_episode_count',
+                    'sim_genres', 'sim_cast', 'hotness',
+                    'jaccard_1_3', 'jaccard_2_3', 'jaccard_3_3']
+
+    weight_features = [0,0,0,
+                       0,0,0,
+                       0,0,0,
+                       1,3,5]
+
+    weight_scores = [1,2,3]
 
 Submission history:
 
