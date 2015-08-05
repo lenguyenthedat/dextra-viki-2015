@@ -139,7 +139,7 @@ def combined_scores(behaviors,videos_matrix,hot_videos):
     return user_combined_scores
 
 def processing_recommendations(user_combined_scores,users_hot_videos,hot_videos):
-        # separated by '-1,DEXTRA' and '-2,DEXTRA' (removed, otherwise we can't use `row['count'] % 3` below)
+    # separated by '-1,DEXTRA' and '-2,DEXTRA' (removed, otherwise we can't use `row['count'] % 3` below)
     test1 = pd.read_csv('./data/20150701094451-Sample_submission-p1.csv')
     test2 = pd.read_csv('./data/20150701094451-Sample_submission-p2.csv')
     # merge to preserve ordering of the test sets
@@ -149,17 +149,20 @@ def processing_recommendations(user_combined_scores,users_hot_videos,hot_videos)
     submit2 = pd.merge(test2, user_combined_scores, on=['user_id'], how='left')
     submit2 = pd.merge(submit2, users_hot_videos, on=['user_id'], how='left')
     submit2['count'] = submit2.index
+    def merge(r1,r2): # merging 2 list, removing those from r2 that already appears on r1 - with priority on list #1
+        return r1 +  [x for x in r2 if x not in r1]
     def recommendation(row):
         try:
             if len(row['recommendations']) == 3: # If we have enough recommendations
-                return row['recommendations'][row['count'] % 3]
+                recs = row['recommendations']
             else: # welp, not enough
-                return row['hot_videos_unwatched'][row['count'] % 3]
+                recs = merge(row['recommendations'],row['hot_videos_unwatched'])
         except: # row['recommendations'] could be NaN
             try: # see if there is any `hot_videos_unwatched` available for the user
-                return row['hot_videos_unwatched'][row['count'] % 3]
+                recs = row['hot_videos_unwatched']
             except: # when user haven't watched anything - no record in behaviors file.
-                return hot_videos[row['count'] % 3]
+                recs = hot_videos
+        return recs[row['count'] % 3]
     submit1['video_id'] = submit1.apply(recommendation, axis=1)
     submit2['video_id'] = submit2.apply(recommendation, axis=1)
     submit1 = submit1.drop(['recommendations','count','hot_videos_unwatched'], 1)
