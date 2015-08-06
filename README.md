@@ -97,10 +97,11 @@ Submission history:
 58- new hot videos (only count score= 2 or 3) Result: 0.202451
 59- new hot videos (score= 2 or 3, sqrt)      Result: 0.181191
 60- new hot videos (score= 2 or 3, pow 2)     Result: 0.189585
-
-# TODO
-- Figuring out country restriction problem -> might not be feasible for this challenge, since we do not know if a user is premium or not (premium users doesn't get regional blocked)
-- Time decay function -> might not be feasible for this challenge, since training data is all in a span of 3-4 months.
+61- 01-01-01-00-00-00-01-01-00-04-07-00-01-02-top-20  Result: 0.199957
+62- 03-03-05-00-00-00-05-05-00-02-10-01-02-03-top-20  Result: 0.199543
+63- 03-03-05-00-00-00-05-05-00-02-10-01-02-03-top-20  Result: 0.202127 - freshness
+64- 03-03-05-00-00-00-05-05-00-02-10-01-02-03-top-10  Result: 0.204343
+65- 03-03-05-00-00-00-05-05-00-02-10-01-02-03-top-100 Result: 0.202351
 
 The reason why HOT VIDEOS dominated CF is because viki's homepage currently dominated by:
 - Top banner
