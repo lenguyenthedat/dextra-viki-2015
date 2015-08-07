@@ -9,7 +9,7 @@ import os
 import datetime
 import math
 
-top_videos_limit = 100
+top_videos_limit = 10
 sim_features = ['sim_country', 'sim_language', 'sim_adult',
                 'sim_content_owner_id', 'sim_broadcast', 'sim_episode_count',
                 'sim_genres', 'sim_cast',
@@ -17,8 +17,8 @@ sim_features = ['sim_country', 'sim_language', 'sim_adult',
 weight_features = [3,3,5,
                    0,0,0,
                    5,5,
-                   0,2,10]
-weight_scores = [1,2,3]
+                   1,5,45]
+weight_scores = [1,5,15]
 """ weight_scores:
 How important a video user watched affects his recommended videos
 In order words, if A watch V1 for 5% (score = 1) of its duration, and V2 for 95% (score = 3) of its duration,
@@ -104,7 +104,7 @@ def compute_hotness_and_freshness(behaviors, videos):
         except:
             return 0
     videos['freshness'] = videos.apply(hotness, axis=1)
-    # Freshness to be scalled from 0 to 1 with 1 being the hottest video.
+    # Freshness to be scalled from 0 to 1 with 1 being the fresh-est video.
     scaler = MinMaxScaler()
     scaler.fit(list(videos['freshness']))
     videos['freshness'] = scaler.transform(videos['freshness'])
