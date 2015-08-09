@@ -74,50 +74,6 @@ def read_data():
                                         'sim_cast', 'jaccard_1_3', 'jaccard_2_3', 'jaccard_3_3'],1)
     return (behaviors, videos, videos_matrix)
 
-def compute_performance(behaviors):
-    """
-        http://www.imdb.com/chart/top
-        The formula for calculating the Top Rated 250 Titles gives a true Bayesian estimate: weighted rating
-        (WR) = (v ÷ (v+m)) × R + (m ÷ (v+m)) × C where:
-        R = average for the movie (mean) = (Rating)
-        v = number of votes for the movie = (votes)
-        m = minimum votes required to be listed in the Top 250 (currently 25000)
-        C = the mean vote across the whole report (currently 7.1)
-
-        >>> videos_performance = compute_performance(behaviors)
-        >>> videos_performance.drop(['votes','score'],1)[:5]
-          video_id  performance
-        0    TV001     2.040319
-        1    TV002     1.948266
-        2    TV003     1.489046
-        3    TV004     1.947760
-        4    TV005     1.976567
-    """
-
-    video_avg_score = behaviors.groupby('video_id').agg({'score': np.average})
-    video_avg_score['video_id'] = video_avg_score.index
-    video_avg_score = video_avg_score.reset_index(drop=True)
-
-    video_votes = behaviors.groupby('video_id').agg({'score': 'count'})
-    video_votes['video_id'] = video_votes.index
-    video_votes = video_votes.reset_index(drop=True)
-    video_votes.columns = ['votes', 'video_id']
-
-    m = 5000 # len(video_votes[video_votes.votes > 5000]) = 164. At least to have 5000 votes in the period
-
-    C = behaviors.drop(['user_id','video_id'],1).mean().score # 1.9480552893217638
-
-    videos_performance = pd.merge(video_avg_score,video_votes, on='video_id')
-    def performance(row):
-        try:
-            R = row['score']
-            v = row['votes']
-            return (v / (v + m)) * R + (m / (v+m)) * C
-        except:
-            return -1
-    videos_performance['performance'] = videos_performance.apply(performance, axis=1)
-    return videos_performance.drop(['votes','score'],1)
-
 def compute_hotness_and_freshness(behaviors, videos):
     """ To compute a list of hot videos specific to each user, removing those that he/she already watched
         >>> videos_hotness_freshness = compute_hotness(behaviors, videos)
@@ -149,12 +105,12 @@ def compute_hotness_and_freshness(behaviors, videos):
             return 0
     videos['freshness'] = videos.apply(hotness, axis=1)
     # Freshness to be scalled from 1 to 2 with 2 being the fresh-est video.
-    scaler = MinMaxScaler(feature_range=(1, 2))
+    scaler = MinMaxScaler(feature_range=(1,2))
     scaler.fit(list(videos['freshness']))
     videos['freshness'] = scaler.transform(videos['freshness'])
     return videos.drop('date_hour',1)
 
-def combined_scores(behaviors,videos_matrix,videos_hotness_freshness,videos_performance):
+def combined_scores(behaviors,videos_matrix,videos_hotness_freshness):
     """ To combine all similar score of all moviews calculated based on user history.
         Result will be each user and his / her top 3 recommendations (if available)
         >>> user_combined_scores = combined_scores(behaviors,videos_matrix)
@@ -168,8 +124,7 @@ def combined_scores(behaviors,videos_matrix,videos_hotness_freshness,videos_perf
         user_history_videos_matrix = behaviors.reindex_axis(behaviors.columns.union(videos_matrix.columns), axis=1)
     else:
         # remove videos not in `top_videos_limit`
-        best_videos = videos_performance.sort('performance', ascending=False).video_id.tolist() # list of best_videos rank by hotness
-        # best_videos = videos_hotness_freshness.sort('hotness', ascending=False).video_id.tolist() # list of best_videos rank by hotness
+        best_videos = videos_hotness_freshness.sort('hotness', ascending=False).video_id.tolist() # list of best_videos rank by hotness
         videos_matrix = videos_matrix[[x in best_videos[:top_videos_limit] for x in videos_matrix['video_id_right']]]
         user_history_videos_matrix = pd.merge(behaviors, videos_matrix, left_on=['video_id'], right_on=['video_id_left'])
     def weighted_sim_combined(row):
@@ -191,12 +146,9 @@ def combined_scores(behaviors,videos_matrix,videos_hotness_freshness,videos_perf
     user_combined_scores = user_combined_scores.drop('video_ids', 1) # user_id, video_id_right, weighted_sim_combined
     # produce result: user - top 3 videos (one entry per user)
     user_combined_scores = pd.merge(user_combined_scores, videos_hotness_freshness, left_on=['video_id_right'], right_on='video_id', how='left').drop('video_id',1)
-    user_combined_scores = pd.merge(user_combined_scores, videos_performance, left_on=['video_id_right'], right_on='video_id', how='left').drop('video_id',1)
     user_combined_scores['weighted_sim_combined'] = user_combined_scores['weighted_sim_combined'] * \
-                                                    user_combined_scores['performance']
-    # user_combined_scores['weighted_sim_combined'] = user_combined_scores['weighted_sim_combined'] * \
-    #                                                 user_combined_scores['hotness'] * \
-    #                                                 user_combined_scores['freshness']
+                                                    user_combined_scores['hotness'] * \
+                                                    user_combined_scores['freshness']
     user_combined_scores = user_combined_scores.sort(['weighted_sim_combined'], ascending=False).groupby('user_id').head(3)
     try:
         user_combined_scores = pd.DataFrame({ 'recommendations' : user_combined_scores.groupby('user_id').apply(lambda x: list(x.video_id_right))})
@@ -249,8 +201,6 @@ def processing_recommendations(user_combined_scores,behaviors,videos):
     return (submit1,submit2)
 
 def output_result_to_csv(submit1,submit2):
-    print "=> Writing result to CSV"
-    print datetime.datetime.now()
     if not os.path.exists('result/'):
         os.makedirs('result/')
     with open('./result/submit-'+'-'.join(str(x) for x in weight_features)+
@@ -264,17 +214,15 @@ def output_result_to_csv(submit1,submit2):
         writer.writerow(['-2','DEXTRA'])
 
 def main():
-    print str(datetime.datetime.now()) + "=> Processing data... "
+    print str(datetime.datetime.now()) + " => Processing data... "
     (behaviors, videos, videos_matrix) = read_data()
-    print str(datetime.datetime.now()) + "=> Calculating videos' hotness and freshness..."
+    print str(datetime.datetime.now()) + " => Calculating videos' hotness and freshness..."
     videos_hotness_freshness = compute_hotness_and_freshness(behaviors, videos)
-    print str(datetime.datetime.now()) + "=> Calculating videos' performance..."
-    videos_performance = compute_performance(behaviors)
-    print str(datetime.datetime.now()) + "=> Combining results for each user..."
-    user_combined_scores = combined_scores(behaviors,videos_matrix,videos_hotness_freshness,videos_performance)
-    print str(datetime.datetime.now()) + "=> Processing recommendations..."
+    print str(datetime.datetime.now()) + " => Combining results for each user..."
+    user_combined_scores = combined_scores(behaviors,videos_matrix,videos_hotness_freshness)
+    print str(datetime.datetime.now()) + " => Processing recommendations..."
     (submit1,submit2) = processing_recommendations(user_combined_scores,behaviors,videos)
-    print str(datetime.datetime.now()) + "=> Output to csv..."
+    print str(datetime.datetime.now()) + " => Output to csv..."
     output_result_to_csv(submit1,submit2)
 
 if __name__ == "__main__":

@@ -113,7 +113,8 @@ Submission history:
 74- 03-03-05-00-00-00-05-05-01-05-45-01-05-15-top-10  Result: 0.203345 No freshness
 75- 03-03-05-00-00-00-05-05-01-05-45-01-05-15-top-10  Result: 0.205918 freshness^2
 76- 03-03-05-00-00-00-05-05-01-05-45-01-05-15-top-10  Result: 0.205935 freshness^2 minmax 1-2
-
+77- 03-03-05-00-00-00-05-05-01-05-45-01-05-15-top-10  Result: 0.168555 amazon-limit-by-top-perf
+78- 03-03-05-00-00-00-05-05-01-05-45-01-05-15-top-10  Result: 0.184913 limit -by-hotness-combine-by-aws-perf
 The reason why HOT VIDEOS dominated CF is because viki's homepage currently dominated by:
 - Top banner
 - Popular show
