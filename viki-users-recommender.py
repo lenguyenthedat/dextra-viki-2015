@@ -1,5 +1,5 @@
 from __future__ import division
-from sklearn.preprocessing import StandardScaler, MinMaxScaler
+from sklearn.preprocessing import StandardScaler
 
 import pandas as pd
 import time
@@ -79,9 +79,9 @@ def compute_hotness_and_freshness(behaviors, videos):
         >>> videos_hotness_freshness = compute_hotness(behaviors, videos)
         >>> videos_hotness_freshness[:3]
           video_id     hotness  freshness
-        0    TV001   23.721311   0.005174
-        1    TV002    0.008772   0.000002
-        2    TV003  104.245902   0.022737
+        0    TV001   23.721311   1.005174
+        1    TV002    0.008772   1.000002
+        2    TV003  104.245902   1.022737
     """
     # Only care about behaviors with score 2 or 3
     behaviors_high = behaviors[behaviors['score']>1]
@@ -104,10 +104,6 @@ def compute_hotness_and_freshness(behaviors, videos):
         except:
             return 0
     videos['freshness'] = videos.apply(hotness, axis=1)
-    # Freshness to be scalled from 1 to 2 with 2 being the fresh-est video.
-    scaler = MinMaxScaler(feature_range=(1,2))
-    scaler.fit(list(videos['freshness']))
-    videos['freshness'] = scaler.transform(videos['freshness'])
     return videos.drop('date_hour',1)
 
 def combined_scores(behaviors,videos_matrix,videos_hotness_freshness):
