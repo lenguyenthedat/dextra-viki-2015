@@ -116,10 +116,14 @@ Submission history:
 77- 03-03-05-00-00-00-05-05-01-05-45-01-05-15-top-10  Result: 0.168555 amazon-limit-by-top-perf
 78- 03-03-05-00-00-00-05-05-01-05-45-01-05-15-top-10  Result: 0.184913 limit -by-hotness-combine-by-aws-perf
 79- 03-03-05-00-00-00-05-05-01-05-45-01-05-15-top-10  Result: 0.202482 hotness only when score = 3
-
+80->93 bugs and shits
+94- 03-03-05-00-00-00-05-05-01-05-45-01-05-15-top-10  Result: 0.211681 mimic #68 with a split for Hotness (male / female / overall)
+95- 00-00-00-00-00-00-00-00-00-00-00-01-05-15-top-10  Result: 0.20112 hotness (split) only
+96- 03-03-05-00-00-00-05-05-01-05-45-01-05-15-top-10  Result: 0.210312 mimic #94 with hotness^2
+96- 03-03-05-00-00-00-05-05-01-05-45-01-05-15-top-25  Result: 0.211086 mimic #94 with top25
 
 The reason why HOT VIDEOS dominated CF is because viki's homepage currently dominated by:
 - Top banner
 - Popular show
 - Top Drama
-
+- # Gender filter for male / female
