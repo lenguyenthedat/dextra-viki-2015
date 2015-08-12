@@ -180,11 +180,11 @@ def combined_scores(behaviors, users, videos_matrix,videos_hotness_freshness):
         #TODO: parameterize this
         try:
             if row['gender'] == 'm':
-                return row['weighted_sim_combined'] * row['hotness_m'] * row['freshness']
+                return row['weighted_sim_combined'] * row['hotness_m'] * math.pow(row['freshness'],2)
             elif row['gender'] == 'f':
-                return row['weighted_sim_combined'] * row['hotness_f'] * row['freshness']
+                return row['weighted_sim_combined'] * row['hotness_f'] * math.pow(row['freshness'],2)
             else:
-                return row['weighted_sim_combined'] * row['hotness_o'] * row['freshness']
+                return row['weighted_sim_combined'] * row['hotness_o'] * math.pow(row['freshness'],2)
         except:
             return 0
     user_combined_scores['weighted_sim_combined'] = user_combined_scores.apply(weighted_sim_combined, axis=1)
