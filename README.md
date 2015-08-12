@@ -116,11 +116,27 @@ Submission history:
 77- 03-03-05-00-00-00-05-05-01-05-45-01-05-15-top-10  Result: 0.168555 amazon-limit-by-top-perf
 78- 03-03-05-00-00-00-05-05-01-05-45-01-05-15-top-10  Result: 0.184913 limit -by-hotness-combine-by-aws-perf
 79- 03-03-05-00-00-00-05-05-01-05-45-01-05-15-top-10  Result: 0.202482 hotness only when score = 3
-80->93 bugs and shits
+80- 3-3-0-0-0-0-5-25-1-15-45-1-15-45-top-10 Result: 0.203116
+81- 3-3-25-0-0-0-5-1-1-15-45-1-15-45-top-5 Result: 0.204379
+82- 3-3-25-0-0-0-5-25-1-15-45-1-15-45-top-5-nofresh-nohotness Result: 0.199439
+83- 3-3-25-0-0-0-5-25-1-15-45-1-15-45-top-25-nohotness Result: 0.184235
+84- 90-5-5-0-0-0-5-15-1-10-45-1-5-7-top-100 Result: 0.202711-hot^2
+85- 99-5-5-0-0-0-5-15-1-45-45-1-5-5-top-25 Result: 0.202381
+86- 99-5-5-0-0-0-5-15-1-45-45-1-5-5-top-100 Result: 0.168672-hotnessminmax1-2-newjaccard
+87- 99-5-5-0-0-0-5-15-1-45-45-1-5-5-top-100 Result: 0.180541-hotnessminmax0-1-newjaccard
+88- 99-5-5-0-0-0-5-15-1-45-45-1-5-5-top-100 Result: 0.188778-noscale-newjaccard
+89- 3-3-5-0-0-0-5-5-1-5-45-1-5-15-top-10 Result: 0.194169-newjaccard is bad
+90- 3-3-5-0-0-0-5-5-1-5-45-1-5-15-top-10 Result: 0.206163
+91- 3-3-25-0-0-0-5-0-1-25-45-1-5-5-top-10 Result: 0.205861
+92- 25-5-25-0-0-0-15-15-0-0-45-0-0-5-top-10 Result: 0.199735
+93- 25-5-25-0-0-0-0-0-0-45-45-0-5-5-top-10 Result: 0.204245
 94- 03-03-05-00-00-00-05-05-01-05-45-01-05-15-top-10  Result: 0.211681 mimic #68 with a split for Hotness (male / female / overall)
 95- 00-00-00-00-00-00-00-00-00-00-00-01-05-15-top-10  Result: 0.20112 hotness (split) only
 96- 03-03-05-00-00-00-05-05-01-05-45-01-05-15-top-10  Result: 0.210312 mimic #94 with hotness^2
-96- 03-03-05-00-00-00-05-05-01-05-45-01-05-15-top-25  Result: 0.211086 mimic #94 with top25
+97- 03-03-05-00-00-00-05-05-01-05-45-01-05-15-top-25  Result: 0.211086 mimic #94 with top25
+98- 03-03-05-00-00-00-05-05-01-05-45-01-05-15-top-10  Result: 0.212555 best_videos to be divided (f,m,o)
+99- 03-03-05-00-00-00-05-05-01-25-45-01-02-03-top-10  Result: 0.212485
+100 03-03-05-00-00-00-05-05-01-05-45-01-05-15-top-10  Result: 0.212396 #mimic 98 but treat hot_overall as female
 
 The reason why HOT VIDEOS dominated CF is because viki's homepage currently dominated by:
 - Top banner

@@ -149,8 +149,13 @@ def combined_scores(behaviors, users, videos_matrix,videos_hotness_freshness):
         user_history_videos_matrix = behaviors.reindex_axis(behaviors.columns.union(videos_matrix.columns), axis=1)
     else:
         # remove videos not in `top_videos_limit`
-        best_videos = videos_hotness_freshness.sort('hotness_o', ascending=False).video_id.tolist() # list of best_videos rank by hotness overall
-        videos_matrix = videos_matrix[[x in best_videos[:top_videos_limit] for x in videos_matrix['video_id_right']]]
+        best_videos_m = videos_hotness_freshness.sort('hotness_m', ascending=False).video_id.tolist() # list of best_videos rank by hotness overall
+        best_videos_f = videos_hotness_freshness.sort('hotness_f', ascending=False).video_id.tolist() # list of best_videos rank by hotness overall
+        best_videos_o = videos_hotness_freshness.sort('hotness_o', ascending=False).video_id.tolist() # list of best_videos rank by hotness overall
+        videos_matrix = videos_matrix[[x in best_videos_m[:top_videos_limit] + \
+                                            best_videos_f[:top_videos_limit] + \
+                                            best_videos_o[:top_videos_limit] \
+                                       for x in videos_matrix['video_id_right']]]
         user_history_videos_matrix = pd.merge(behaviors, videos_matrix, left_on=['video_id'], right_on=['video_id_left'])
     def weighted_sim_combined(row): # to combine with each session score
         return weight_scores[row['score']-1] * row['sim_combined']
@@ -172,6 +177,7 @@ def combined_scores(behaviors, users, videos_matrix,videos_hotness_freshness):
     user_combined_scores = pd.merge(user_combined_scores, videos_hotness_freshness, left_on=['video_id_right'], right_on='video_id', how='left').drop('video_id',1)
     user_combined_scores = pd.merge(user_combined_scores, users, on='user_id', how='left')
     def weighted_sim_combined(row): # to combine with hotness and freshness per gender
+        #TODO: parameterize this
         try:
             if row['gender'] == 'm':
                 return row['weighted_sim_combined'] * row['hotness_m'] * row['freshness']
