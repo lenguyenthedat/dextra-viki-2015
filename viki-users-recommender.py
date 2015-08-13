@@ -94,7 +94,7 @@ def compute_hotness_and_freshness(behaviors, users, videos):
     # Only care about behaviors with score 2 or 3
     behaviors_high_m = behaviors[behaviors['score']>1][behaviors['gender']=='m']
     behaviors_high_f = behaviors[behaviors['score']>1][behaviors['gender']=='f']
-    behaviors_high_o = behaviors[behaviors['score']>1]
+    behaviors_high_o = behaviors[behaviors['score']>1][behaviors['gender']!='f'][behaviors['gender']!='m']
     videos_views_high_m = behaviors_high_m.groupby('video_id').agg(['count']).sort([('score', 'count')], ascending=False)
     videos_views_high_f = behaviors_high_f.groupby('video_id').agg(['count']).sort([('score', 'count')], ascending=False)
     videos_views_high_o = behaviors_high_o.groupby('video_id').agg(['count']).sort([('score', 'count')], ascending=False)
