@@ -79,10 +79,10 @@ def read_data():
                                         'sim_cast', 'jaccard_1_3', 'jaccard_2_3', 'jaccard_3_3'],1)
     return (behaviors, users, videos, videos_matrix)
 
-def compute_hotness_and_freshness(behaviors, users, videos):
+def compute_videos_performance(behaviors, users, videos):
     """ To compute a list of hot videos specific to each user, removing those that he/she already watched
-        >>> videos_hotness_freshness = compute_hotness(behaviors, videos)
-        >>> videos_hotness_freshness[:5]
+        >>> videos_performance = compute_videos_performance(behaviors, users, videos)
+        >>> videos_performance[:5]
           video_id  hotness_m  hotness_f  freshness   hotness_o
         0    TV001   2.508197  15.295082   0.008197   23.721311
         1    TV002   0.000000   0.008772   0.008772    0.008772
@@ -91,13 +91,12 @@ def compute_hotness_and_freshness(behaviors, users, videos):
         4    TV005   2.737705  20.811475   0.008197   35.827869
     """
     behaviors = pd.merge(behaviors, users, on='user_id', how='left')
-    # Only care about behaviors with score 2 or 3
-    behaviors_high_m = behaviors[behaviors['score']>1][behaviors['gender']=='m']
-    behaviors_high_f = behaviors[behaviors['score']>1][behaviors['gender']=='f']
-    behaviors_high_o = behaviors[behaviors['score']>1][behaviors['gender']!='f'][behaviors['gender']!='m']
-    videos_views_high_m = behaviors_high_m.groupby('video_id').agg(['count']).sort([('score', 'count')], ascending=False)
-    videos_views_high_f = behaviors_high_f.groupby('video_id').agg(['count']).sort([('score', 'count')], ascending=False)
-    videos_views_high_o = behaviors_high_o.groupby('video_id').agg(['count']).sort([('score', 'count')], ascending=False)
+    videos_views_high_m = behaviors[behaviors['score']> 1][behaviors['gender']=='m'].groupby('video_id').agg(['count'])
+    videos_views_high_f = behaviors[behaviors['score']> 1][behaviors['gender']=='f'].groupby('video_id').agg(['count'])
+    videos_views_high_o = behaviors[behaviors['score']> 1][behaviors['gender']!='f'][behaviors['gender']!='m'].groupby('video_id').agg(['count'])
+    videos_views_low_m  = behaviors[behaviors['score']==1][behaviors['gender']=='m'].groupby('video_id').agg(['count'])
+    videos_views_low_f  = behaviors[behaviors['score']==1][behaviors['gender']=='f'].groupby('video_id').agg(['count'])
+    videos_views_low_o  = behaviors[behaviors['score']==1][behaviors['gender']!='f'][behaviors['gender']!='m'].groupby('video_id').agg(['count'])
     def hotness_m(row):
         try:
             first_date = datetime.datetime.strptime(row['date_hour'],"%Y-%m-%dT%H").date()
@@ -133,9 +132,43 @@ def compute_hotness_and_freshness(behaviors, users, videos):
         except:
             return 0
     videos['freshness'] = videos.apply(freshness, axis=1)
+    # http://www.evanmiller.org/how-not-to-sort-by-average-rating.html
+    # ((positive + 1.9208) / (positive + negative) -
+    #             1.96 * SQRT((positive * negative) / (positive + negative) + 0.9604) /
+    #                    (positive + negative)) / (1 + 3.8416 / (positive + negative))
+    def bestness_m(row):
+        try:
+            positive = videos_views_high_m[videos_views_high_m.index==row['video_id']].reset_index().score['count'][0]
+            negative = videos_views_low_m[videos_views_low_m.index==row['video_id']].reset_index().score['count'][0]
+            return ((positive + 1.9208) / (positive + negative) - \
+                1.96 * math.sqrt((positive * negative) / (positive + negative) + 0.9604) / \
+                (positive + negative)) / (1 + 3.8416 / (positive + negative))
+        except:
+            return 0
+    videos['bestness_m'] = videos.apply(bestness_m, axis=1)
+    def bestness_f(row):
+        try:
+            positive = videos_views_high_f[videos_views_high_f.index==row['video_id']].reset_index().score['count'][0]
+            negative = videos_views_low_f[videos_views_low_f.index==row['video_id']].reset_index().score['count'][0]
+            return ((positive + 1.9208) / (positive + negative) - \
+                1.96 * math.sqrt((positive * negative) / (positive + negative) + 0.9604) / \
+                (positive + negative)) / (1 + 3.8416 / (positive + negative))
+        except:
+            return 0
+    videos['bestness_f'] = videos.apply(bestness_f, axis=1)
+    def bestness_o(row):
+        try:
+            positive = videos_views_high_o[videos_views_high_o.index==row['video_id']].reset_index().score['count'][0]
+            negative = videos_views_low_o[videos_views_low_o.index==row['video_id']].reset_index().score['count'][0]
+            return ((positive + 1.9208) / (positive + negative) - \
+                1.96 * math.sqrt((positive * negative) / (positive + negative) + 0.9604) / \
+                (positive + negative)) / (1 + 3.8416 / (positive + negative))
+        except:
+            return 0
+    videos['bestness_o'] = videos.apply(bestness_o, axis=1)
     return videos.drop('date_hour',1)
 
-def combined_scores(behaviors, users, videos_matrix,videos_hotness_freshness):
+def combined_scores(behaviors, users, videos_matrix,videos_performance):
     """ To combine all similar score of all moviews calculated based on user history.
         Result will be each user and his / her top 3 recommendations (if available)
         >>> user_combined_scores = combined_scores(behaviors,videos_matrix)
@@ -149,9 +182,9 @@ def combined_scores(behaviors, users, videos_matrix,videos_hotness_freshness):
         user_history_videos_matrix = behaviors.reindex_axis(behaviors.columns.union(videos_matrix.columns), axis=1)
     else:
         # remove videos not in `top_videos_limit`
-        best_videos_m = videos_hotness_freshness.sort('hotness_m', ascending=False).video_id.tolist() # list of best_videos rank by hotness overall
-        best_videos_f = videos_hotness_freshness.sort('hotness_f', ascending=False).video_id.tolist() # list of best_videos rank by hotness overall
-        best_videos_o = videos_hotness_freshness.sort('hotness_o', ascending=False).video_id.tolist() # list of best_videos rank by hotness overall
+        best_videos_m = videos_performance.sort('hotness_m', ascending=False).video_id.tolist() # list of best_videos rank by hotness overall
+        best_videos_f = videos_performance.sort('hotness_f', ascending=False).video_id.tolist() # list of best_videos rank by hotness overall
+        best_videos_o = videos_performance.sort('hotness_o', ascending=False).video_id.tolist() # list of best_videos rank by hotness overall
         videos_matrix = videos_matrix[[x in best_videos_m[:top_videos_limit] + \
                                             best_videos_f[:top_videos_limit] + \
                                             best_videos_o[:top_videos_limit] \
@@ -174,17 +207,17 @@ def combined_scores(behaviors, users, videos_matrix,videos_hotness_freshness):
         pass
     user_combined_scores = user_combined_scores.drop('video_ids', 1) # user_id, video_id_right, weighted_sim_combined
     # produce result: user - top 3 videos (one entry per user)
-    user_combined_scores = pd.merge(user_combined_scores, videos_hotness_freshness, left_on=['video_id_right'], right_on='video_id', how='left').drop('video_id',1)
+    user_combined_scores = pd.merge(user_combined_scores, videos_performance, left_on=['video_id_right'], right_on='video_id', how='left').drop('video_id',1)
     user_combined_scores = pd.merge(user_combined_scores, users, on='user_id', how='left')
     def weighted_sim_combined(row): # to combine with hotness and freshness per gender
         #TODO: parameterize this
         try:
             if row['gender'] == 'm':
-                return row['weighted_sim_combined'] * row['hotness_m'] * math.pow(row['freshness'],2)
+                return row['weighted_sim_combined'] * row['hotness_m'] * row['bestness_m'] * math.pow(row['freshness'],2)
             elif row['gender'] == 'f':
-                return row['weighted_sim_combined'] * row['hotness_f'] * math.pow(row['freshness'],2)
+                return row['weighted_sim_combined'] * row['hotness_f'] * row['bestness_f'] * math.pow(row['freshness'],2)
             else:
-                return row['weighted_sim_combined'] * row['hotness_o'] * math.pow(row['freshness'],2)
+                return row['weighted_sim_combined'] * row['hotness_o'] * row['bestness_o'] * math.pow(row['freshness'],2)
         except:
             return 0
     user_combined_scores['weighted_sim_combined'] = user_combined_scores.apply(weighted_sim_combined, axis=1)
@@ -193,7 +226,9 @@ def combined_scores(behaviors, users, videos_matrix,videos_hotness_freshness):
         user_combined_scores = pd.DataFrame({ 'recommendations' : user_combined_scores.groupby('user_id').apply(lambda x: list(x.video_id_right))})
         user_combined_scores['user_id'] = user_combined_scores.index
     except: # empty dataframe
-        user_combined_scores=user_combined_scores.drop(['video_id_right','country','gender','hotness_m','hotness_f','hotness_o','freshness'],1)
+        user_combined_scores=user_combined_scores.drop(['video_id_right','country','gender',
+                                                        'hotness_m','hotness_f','hotness_o','freshness',
+                                                        'bestness_m','bestness_f','bestness_o'],1)
         user_combined_scores.columns = ['recommendations','user_id']
     return user_combined_scores.reset_index(drop=True)
 
@@ -265,9 +300,9 @@ def main():
     print str(datetime.datetime.now()) + " => Processing data... "
     (behaviors, users, videos, videos_matrix) = read_data()
     print str(datetime.datetime.now()) + " => Calculating videos' hotness and freshness..."
-    videos_hotness_freshness = compute_hotness_and_freshness(behaviors, users, videos)
+    videos_performance = compute_videos_performance(behaviors, users, videos)
     print str(datetime.datetime.now()) + " => Combining results for each user..."
-    user_combined_scores = combined_scores(behaviors,users,videos_matrix,videos_hotness_freshness)
+    user_combined_scores = combined_scores(behaviors,users,videos_matrix,videos_performance)
     print str(datetime.datetime.now()) + " => Processing recommendations..."
     (submit1,submit2) = processing_recommendations(user_combined_scores,behaviors,users,videos)
     print str(datetime.datetime.now()) + " => Output to csv..."
