@@ -9,19 +9,35 @@ import re
 
 def read_data():
     """ Read and pre-process data
-        >>> (videos,behaviors) = read_data()
-        >>> behaviors[:2]
-            user_id   video_id   score
-        0    759744      TV003       1
-        1    759744      TV015       2
-        >>> videos[:2]
-          video_id broadcast_from
-        0    TV001           None
-        1    TV002        2013-06
+        >>> videos = read_data()
+        >>> videos[:3]
+          video_id  container_id origin_country origin_language  adult broadcast_from  \
+        0    TV001  Container001             us              en  False           None
+        1    TV002  Container002             us              en  False        2013-06
+        2    TV003  Container003             tw              zt  False        2012-07
+
+          broadcast_to season_number content_owner_id  \
+        0         None          None   ContentOwner01
+        1      2013-08             3   ContentOwner02
+        2      2012-11          None   ContentOwner03
+
+                                                      genres  episode_count  \
+        0                                               None              5
+        1                            Action & Adventure (1g)             10
+        2  Comedy (6g), Drama (9g), Idol Drama (1038g), R...             77
+
+                                                   person_id  \
+        0                                                NaN
+        1                                                NaN
+        2  Cast0898 Cast0483 Cast1344 Cast1688 Cast0503 C...
+
+                                                     user_id
+        0  189500_2 328741_2 579541_2 153183_2 151295_3 3...
+        1                                           353674_3
+        2  759744_1 379687_3 160301_1 159490_1 151124_1 1...
     """
     videos = pd.read_csv('./data/20150701094451-Video_attributes.csv')
     casts = pd.read_csv('./data/20150701094451-Video_casts.csv')
-    users = pd.read_csv('./data/20150701094451-User_attributes.csv')
     behaviors = pd.read_csv('./data/20150701094451-Behavior_training.csv',dtype={'user_id':pd.np.string_,'score':pd.np.string_})
     # we don't care about these for now
     behaviors = behaviors.drop(['date_hour','mv_ratio'], 1)
@@ -35,7 +51,27 @@ def read_data():
 
 def feature_similarity(videos):
     """ Calculating feature similarity for each pair of movies.
+        >>> videos_matrix = feature_similarity(videos)
+        >>> videos_matrix[:3]
+          video_id_left                                       user_id_left  \
+        0         TV001  189500_2 328741_2 579541_2 153183_2 151295_3 3...
+        1         TV001  189500_2 328741_2 579541_2 153183_2 151295_3 3...
+        2         TV001  189500_2 328741_2 579541_2 153183_2 151295_3 3...
 
+          video_id_right                                      user_id_right  \
+        0          TV001  189500_2 328741_2 579541_2 153183_2 151295_3 3...
+        1          TV002                                           353674_3
+        2          TV003  759744_1 379687_3 160301_1 159490_1 151124_1 1...
+
+           sim_country  sim_language  sim_adult  sim_content_owner_id  sim_broadcast  \
+        0            1             1          1                     1              0
+        1            1             1          1                     0              0
+        2            0             0          1                     0              0
+
+           sim_season  sim_episode_count  sim_genres  sim_cast
+        0           0           1.000000           0         0
+        1           0           0.500000           0         0
+        2           0           0.064935           0         0
     """
     # Constructing videos_matrix
     videos['dummy'] = 1
@@ -102,9 +138,42 @@ def feature_similarity(videos):
         except:
             return 0
     videos_matrix['sim_cast'] = videos_matrix.apply(sim_cast, axis=1)
-    return videos_matrix
+    return videos_matrix.drop(['container_id_left', 'origin_country_left', 'origin_language_left', 'adult_left',
+     'broadcast_from_left', 'broadcast_to_left', 'season_number_left', 'content_owner_id_left', 'genres_left',
+     'episode_count_left', 'person_id_left', 'container_id_right',
+     'origin_country_right', 'origin_language_right', 'adult_right', 'broadcast_from_right',
+     'broadcast_to_right', 'season_number_right', 'content_owner_id_right', 'genres_right',
+     'episode_count_right', 'person_id_right'],1)
 
 def jaccard_similarity(videos_matrix):
+    """ Calculating jaccard similarity for each pair of movies.
+        >>> videos_matrix = jaccard_similarity(videos_matrix)
+        >>> videos_matrix[:3]
+          video_id_left                                       user_id_left  \
+        0         TV001  189500_2 328741_2 579541_2 153183_2 151295_3 3...
+        1         TV001  189500_2 328741_2 579541_2 153183_2 151295_3 3...
+        2         TV001  189500_2 328741_2 579541_2 153183_2 151295_3 3...
+
+          video_id_right                                      user_id_right  \
+        0          TV001  189500_2 328741_2 579541_2 153183_2 151295_3 3...
+        1          TV002                                           353674_3
+        2          TV003  759744_1 379687_3 160301_1 159490_1 151124_1 1...
+
+           sim_country  sim_language  sim_adult  sim_content_owner_id  sim_broadcast  \
+        0            1             1          1                     1              0
+        1            1             1          1                     0              0
+        2            0             0          1                     0              0
+
+           sim_season  sim_episode_count  sim_genres  sim_cast  jaccard_1_3  \
+        0           0           1.000000           0         0            0
+        1           0           0.500000           0         0            0
+        2           0           0.064935           0         0            0
+
+           jaccard_2_3  jaccard_3_3
+        0            0      1.00000
+        1            0      0.00000
+        2            0      0.00159
+    """
     print "=> Calculating Jaccard indexes #1-3"
     print datetime.datetime.now()
     def jaccard_1_3(row): # people who do not like LEFT but like RIGHT
@@ -135,16 +204,9 @@ def jaccard_similarity(videos_matrix):
         except:
             return 0
     videos_matrix['jaccard_3_3'] = videos_matrix.apply(jaccard_3_3, axis=1)
-    return videos_matrix
+    return videos_matrix.drop(['user_id_left','user_id_right'],1)
 
 def output_videos_matrix_to_csv(videos_matrix):
-    #Clean up
-    videos_matrix = videos_matrix.drop(['origin_country_left','origin_language_left','adult_left',
-        'content_owner_id_left','broadcast_from_left','broadcast_to_left','season_number_left',
-        'episode_count_left','genres_left','person_id_left','user_id_left','origin_country_right',
-        'origin_language_right','adult_right','content_owner_id_right','broadcast_from_right',
-        'broadcast_to_right','season_number_right','episode_count_right','genres_right',
-        'person_id_right','user_id_right','container_id_left','container_id_right'],1)
     videos_matrix.to_csv("./data/videos_similarity_matrix.csv", encoding='utf-8', index=False)
 
 def main():
