@@ -141,6 +141,12 @@ Submission history:
 102 03-03-05-00-00-00-05-05-01-05-45-01-05-15-top-10  Result: 0.213760 #fresh^4
 103 15-03-05-00-00-00-15-15-01-05-45-01-05-15-top-15  Result: 0.212328.csv
 104 03-03-05-00-00-00-05-05-01-05-45-01-05-15-top-10  Result: 0.214434 #fresh^2, updated hot_o
+105 03-03-05-00-00-00-05-05-01-05-45-01-05-15-top-10  Result: 0.213791 bestness
+106 03-03-05-00-00-00-05-05-01-05-45-01-05-15-top-10  Result: 0.189606 bestness no hotness
+107 03-03-05-00-00-00-05-05-01-05-45-01-05-15-top-10  Result: bestness (with top 10 instead of 5 per movie)
+108 03-03-05-00-00-00-05-05-15-15-45-01-02-03-top-10  Result: 0.214066
+109 03-03-05-00-00-00-05-05-25-25-25-01-05-15-top-10  Result: 0.214225 fresh^3
+110 03-03-05-00-00-00-05-05-01-05-45-01-05-15-top-10  Result: 0.214307 fresh^3
 
 The reason why HOT VIDEOS dominated CF is because viki's homepage currently dominated by:
 - Top banner

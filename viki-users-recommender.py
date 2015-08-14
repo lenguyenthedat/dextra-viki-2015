@@ -94,9 +94,6 @@ def compute_videos_performance(behaviors, users, videos):
     videos_views_high_m = behaviors[behaviors['score']> 1][behaviors['gender']=='m'].groupby('video_id').agg(['count'])
     videos_views_high_f = behaviors[behaviors['score']> 1][behaviors['gender']=='f'].groupby('video_id').agg(['count'])
     videos_views_high_o = behaviors[behaviors['score']> 1][behaviors['gender']!='f'][behaviors['gender']!='m'].groupby('video_id').agg(['count'])
-    videos_views_low_m  = behaviors[behaviors['score']==1][behaviors['gender']=='m'].groupby('video_id').agg(['count'])
-    videos_views_low_f  = behaviors[behaviors['score']==1][behaviors['gender']=='f'].groupby('video_id').agg(['count'])
-    videos_views_low_o  = behaviors[behaviors['score']==1][behaviors['gender']!='f'][behaviors['gender']!='m'].groupby('video_id').agg(['count'])
     def hotness_m(row):
         try:
             first_date = datetime.datetime.strptime(row['date_hour'],"%Y-%m-%dT%H").date()
@@ -132,40 +129,6 @@ def compute_videos_performance(behaviors, users, videos):
         except:
             return 0
     videos['freshness'] = videos.apply(freshness, axis=1)
-    # http://www.evanmiller.org/how-not-to-sort-by-average-rating.html
-    # ((positive + 1.9208) / (positive + negative) -
-    #             1.96 * SQRT((positive * negative) / (positive + negative) + 0.9604) /
-    #                    (positive + negative)) / (1 + 3.8416 / (positive + negative))
-    def bestness_m(row):
-        try:
-            positive = videos_views_high_m[videos_views_high_m.index==row['video_id']].reset_index().score['count'][0]
-            negative = videos_views_low_m[videos_views_low_m.index==row['video_id']].reset_index().score['count'][0]
-            return ((positive + 1.9208) / (positive + negative) - \
-                1.96 * math.sqrt((positive * negative) / (positive + negative) + 0.9604) / \
-                (positive + negative)) / (1 + 3.8416 / (positive + negative))
-        except:
-            return 0
-    videos['bestness_m'] = videos.apply(bestness_m, axis=1)
-    def bestness_f(row):
-        try:
-            positive = videos_views_high_f[videos_views_high_f.index==row['video_id']].reset_index().score['count'][0]
-            negative = videos_views_low_f[videos_views_low_f.index==row['video_id']].reset_index().score['count'][0]
-            return ((positive + 1.9208) / (positive + negative) - \
-                1.96 * math.sqrt((positive * negative) / (positive + negative) + 0.9604) / \
-                (positive + negative)) / (1 + 3.8416 / (positive + negative))
-        except:
-            return 0
-    videos['bestness_f'] = videos.apply(bestness_f, axis=1)
-    def bestness_o(row):
-        try:
-            positive = videos_views_high_o[videos_views_high_o.index==row['video_id']].reset_index().score['count'][0]
-            negative = videos_views_low_o[videos_views_low_o.index==row['video_id']].reset_index().score['count'][0]
-            return ((positive + 1.9208) / (positive + negative) - \
-                1.96 * math.sqrt((positive * negative) / (positive + negative) + 0.9604) / \
-                (positive + negative)) / (1 + 3.8416 / (positive + negative))
-        except:
-            return 0
-    videos['bestness_o'] = videos.apply(bestness_o, axis=1)
     return videos.drop('date_hour',1)
 
 def combined_scores(behaviors, users, videos_matrix,videos_performance):
@@ -213,11 +176,11 @@ def combined_scores(behaviors, users, videos_matrix,videos_performance):
         #TODO: parameterize this
         try:
             if row['gender'] == 'm':
-                return row['weighted_sim_combined'] * row['hotness_m'] * row['bestness_m'] * math.pow(row['freshness'],2)
+                return row['weighted_sim_combined'] * row['hotness_m'] * math.pow(row['freshness'],2)
             elif row['gender'] == 'f':
-                return row['weighted_sim_combined'] * row['hotness_f'] * row['bestness_f'] * math.pow(row['freshness'],2)
+                return row['weighted_sim_combined'] * row['hotness_f'] * math.pow(row['freshness'],2)
             else:
-                return row['weighted_sim_combined'] * row['hotness_o'] * row['bestness_o'] * math.pow(row['freshness'],2)
+                return row['weighted_sim_combined'] * row['hotness_o'] * math.pow(row['freshness'],2)
         except:
             return 0
     user_combined_scores['weighted_sim_combined'] = user_combined_scores.apply(weighted_sim_combined, axis=1)
