@@ -7,31 +7,63 @@ import numpy as np
 import datetime
 import re
 
+# These are for SVD
+# Bash needed
+# rm first line
+# tail -n +2 "data/20150701094451-Behavior_training.csv" > data/behavior.csv
+# ml conversion
+# awk -F',' '{print $2","$3","$5}' data/behavior.csv > data/behavior-ml-score.csv # User / TV / Score
+# awk -F',' '{print $2","$3","$4}' data/behavior.csv > data/behavior-ml-ratio.csv # User / TV / Score
+# http://ocelma.net/software/python-recsys/build/html/quickstart.html (check last part)
+# http://tedlab.mit.edu/~dr/SVDLIBC/
+# http://tedlab.mit.edu/~dr/SVDLIBC/svdlibc.tgz
+# make
+# cp bin/svd /usr/local/bin/svd
+#https://github.com/ocelma/python-recsys
+import recsys.algorithm
+from recsys.algorithm.factorize import SVD
+from recsys.utils.svdlibc import SVDLIBC
+
 def read_data():
     """ Read and pre-process data
-        >>> videos = read_data()
-        >>> videos[:3]
-          video_id  container_id origin_country origin_language  adult broadcast_from  \
-        0    TV001  Container001             us              en  False           None
-        1    TV002  Container002             us              en  False        2013-06
-        2    TV003  Container003             tw              zt  False        2012-07
+        >>> videos_matrix = read_data()
+        >>> videos_matrix[:3]
+          video_id_left container_id_left origin_country_left origin_language_left  \
+        0         TV001      Container001                  us                   en
+        1         TV001      Container001                  us                   en
+        2         TV001      Container001                  us                   en
 
-          broadcast_to season_number content_owner_id  \
-        0         None          None   ContentOwner01
-        1      2013-08             3   ContentOwner02
-        2      2012-11          None   ContentOwner03
+          adult_left broadcast_from_left broadcast_to_left season_number_left  \
+        0      False                None              None               None
+        1      False                None              None               None
+        2      False                None              None               None
 
-                                                      genres  episode_count  \
-        0                                               None              5
-        1                            Action & Adventure (1g)             10
-        2  Comedy (6g), Drama (9g), Idol Drama (1038g), R...             77
+          content_owner_id_left genres_left  \
+        0        ContentOwner01        None
+        1        ContentOwner01        None
+        2        ContentOwner01        None
 
-                                                   person_id  \
-        0                                                NaN
-        1                                                NaN
-        2  Cast0898 Cast0483 Cast1344 Cast1688 Cast0503 C...
+                                 ...                          origin_language_right  \
+        0                        ...                                             en
+        1                        ...                                             en
+        2                        ...                                             zt
 
-                                                     user_id
+          adult_right broadcast_from_right broadcast_to_right season_number_right  \
+        0       False                 None               None                None
+        1       False              2013-06            2013-08                   3
+        2       False              2012-07            2012-11                None
+
+          content_owner_id_right                                       genres_right  \
+        0         ContentOwner01                                               None
+        1         ContentOwner02                            Action & Adventure (1g)
+        2         ContentOwner03  Comedy (6g), Drama (9g), Idol Drama (1038g), R...
+
+          episode_count_right                                    person_id_right  \
+        0                   5                                                NaN
+        1                  10                                                NaN
+        2                  77  Cast0898 Cast0483 Cast1344 Cast1688 Cast0503 C...
+
+                                               user_id_right
         0  189500_2 328741_2 579541_2 153183_2 151295_3 3...
         1                                           353674_3
         2  759744_1 379687_3 160301_1 159490_1 151124_1 1...
@@ -47,11 +79,15 @@ def read_data():
     # combined ppl who watched this video (and their "scores")
     behaviors = behaviors.groupby('video_id',as_index=False).agg(lambda x: ' '.join(x.user_id + '_' + x.score)).drop('score', 1)
     videos = pd.merge(videos, behaviors, on=['video_id'], how='left', suffixes=['_left', '_right'])
-    return videos
+    # Constructing videos_matrix
+    videos['dummy'] = 1
+    videos_matrix = pd.merge(videos, videos, on=['dummy'], suffixes=['_left', '_right'])
+    videos_matrix = videos_matrix.drop('dummy', 1)
+    return videos_matrix
 
-def feature_similarity(videos):
+def feature_similarity(videos_matrix):
     """ Calculating feature similarity for each pair of movies.
-        >>> videos_matrix = feature_similarity(videos)
+        >>> videos_matrix = feature_similarity(videos_matrix)
         >>> videos_matrix[:3]
           video_id_left                                       user_id_left  \
         0         TV001  189500_2 328741_2 579541_2 153183_2 151295_3 3...
@@ -73,10 +109,6 @@ def feature_similarity(videos):
         1           0           0.500000           0         0
         2           0           0.064935           0         0
     """
-    # Constructing videos_matrix
-    videos['dummy'] = 1
-    videos_matrix = pd.merge(videos, videos, on=['dummy'], suffixes=['_left', '_right'])
-    videos_matrix = videos_matrix.drop('dummy', 1)
     # Country Similarity
     def sim_country(row):
         return (1 if row['origin_country_left'] == row['origin_country_right'] else 0)
@@ -206,16 +238,42 @@ def jaccard_similarity(videos_matrix):
     videos_matrix['jaccard_3_3'] = videos_matrix.apply(jaccard_3_3, axis=1)
     return videos_matrix.drop(['user_id_left','user_id_right'],1)
 
+def svd(videos_matrix,preload):
+    """ Calculating SVD matrix for each pair of movies.
+    """
+    recsys.algorithm.VERBOSE = True
+    if preload:
+        svd = SVD(filename='./data/svd-all') # Loading already computed SVD model
+        print "SVD model preloaded"
+    else:
+        print "SVD model loading..."
+        svdlibc = SVDLIBC('./data/behavior-ml-score.csv')
+        svdlibc.to_sparse_matrix(sep=',', format={'col':0, 'row':1, 'value':2, 'ids': str})
+        k=100
+        svdlibc.compute(k)
+        svd = svdlibc.export()
+        svd.save_model('./data/svd-all', options={'k': k})    
+    def compute_svd(row):
+        try:
+            return svd.similarity(row['video_id_left'], row['video_id_right'])
+        except:
+            return 0
+    print "Update video matrix's svd column"
+    videos_matrix['svd'] = videos_matrix.apply(compute_svd, axis=1)
+    return videos_matrix
+
 def output_videos_matrix_to_csv(videos_matrix):
     videos_matrix.to_csv("./data/videos_similarity_matrix.csv", encoding='utf-8', index=False)
 
 def main():
     print "=> Processing data - " + str(datetime.datetime.now())
-    videos = read_data()
+    videos_matrix = read_data()
     print "=> Calculating feature similarities - " + str(datetime.datetime.now())
-    videos_matrix = feature_similarity(videos)
+    videos_matrix = feature_similarity(videos_matrix)
     print "=> Calculating jaccard similarities - " + str(datetime.datetime.now())
     videos_matrix = jaccard_similarity(videos_matrix)
+    print "=> Calculating SVD similarities - " + str(datetime.datetime.now())
+    videos_matrix = svd(videos_matrix,preload=True)
     print "=> Output to csv - " + str(datetime.datetime.now())
     output_videos_matrix_to_csv(videos_matrix)
 
