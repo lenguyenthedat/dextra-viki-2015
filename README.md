@@ -147,9 +147,23 @@ Submission history:
 108 03-03-05-00-00-00-05-05-15-15-45-01-02-03-top-10  Result: 0.214066
 109 03-03-05-00-00-00-05-05-25-25-25-01-05-15-top-10  Result: 0.214225 fresh^3
 110 03-03-05-00-00-00-05-05-01-05-45-01-05-15-top-10  Result: 0.214307 fresh^3
+111 svd-v1 Result: 0.194942
+112 submit-3-3-5-0-0-0-5-5-1-5-45-95-1-5-15-top-10-0.214213
+113 submit-3-3-5-0-0-0-5-5-1-5-25-25-1-2-3-top-10-0.21359
+114 submit-0-0-0-0-0-0-0-0-0-1-1-1-0-1-1-top-10-0.212152
+115 submit-1-1-1-1-1-1-1-1-1-1-1-1-1-1-1-top-10-0.205756
+116 submit-3-3-5-0-0-0-5-5-1-5-45-25-1-5-15-top-10-0.214295
+117 submit-5-3-0-0-0-0-5-15-1-10-25-25-0-1-5-top-15-0.208086 no punishment if score less than 0, fixed jaccard to exclude not-hot movies
+118 submit-3-3-5-0-0-0-5-5-1-5-45-95-1-5-15-top-10-0.214475 # old params
+119 submit-3-3-5-0-0-0-5-5-1-5-45-0-1-5-15-top-10-0.21427
+120 submit-3-3-5-0-0-0-5-5-1-5-95-145-1-5-15-top-10-0.214474
 
 The reason why HOT VIDEOS dominated CF is because viki's homepage currently dominated by:
 - Top banner
 - Popular show
 - Top Drama
 - # Gender filter for male / female
+
+TODO:
+- treat videos user watched differently based on the time he / she watched it
+- utilize ratio instead of score

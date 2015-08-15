@@ -19,6 +19,7 @@ weight_features = [3,3,5,
                    5,5,
                    1,5,45,95]
 weight_scores = [1,5,15]
+
 """ weight_scores:
 How important a video user watched affects his recommended videos
 In order words, if A watch V1 for 5% (score = 1) of its duration, and V2 for 95% (score = 3) of its duration,
@@ -55,7 +56,7 @@ def read_data():
     # Remove unused columns
     behaviors = behaviors.drop(['date_hour','mv_ratio'], 1)
     # Pre-process videos_matrix
-    videos_matrix = videos_matrix[videos_matrix['video_id_left'] != videos_matrix['video_id_right']]
+    videos_matrix = videos_matrix[videos_matrix['video_id_left'] != videos_matrix['video_id_right']] # remove duplicates
     # Feature scaling:
     scaler = StandardScaler()
     for col in sim_features:
@@ -64,10 +65,7 @@ def read_data():
     def sim_combined(row):
         score = 0
         for i in range(0, len(sim_features)):
-            if row[sim_features[i]] > 0:
-                score += row[sim_features[i]]*weight_features[i]
-            # with standard scaler, feature similarity can be below zero.
-            # do not punish them in this case, esp. with jaccard scores.
+            score += row[sim_features[i]]*weight_features[i]
         return score
     videos_matrix['sim_combined'] = videos_matrix.apply(sim_combined, axis=1)
     # only take those with score > 0
