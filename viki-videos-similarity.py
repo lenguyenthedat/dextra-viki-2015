@@ -212,7 +212,7 @@ def jaccard_similarity(videos_matrix):
         try:
             left_1 = set([item for item in row['user_id_left'].split() if item.endswith('_1')])
             right_3 = set([item for item in row['user_id_right'].split() if item.endswith('_3')])
-            if len(left_1|right_3) < 100:
+            if len(left_1|right_3) < 1000:
                 return 0
             else:
                 return len(left_1&right_3) / len(left_1|right_3)
@@ -225,7 +225,7 @@ def jaccard_similarity(videos_matrix):
         try:
             left_2 = set([item for item in row['user_id_left'].split() if item.endswith('_2')])
             right_3 = set([item for item in row['user_id_right'].split() if item.endswith('_3')])
-            if len(left_2|right_3) < 100:
+            if len(left_2|right_3) < 1000:
                 return 0
             else:
                 return len(left_2&right_3) / len(left_2|right_3)
@@ -238,7 +238,7 @@ def jaccard_similarity(videos_matrix):
         try:
             left_3 = set([item for item in row['user_id_left'].split() if item.endswith('_3')])
             right_3 = set([item for item in row['user_id_right'].split() if item.endswith('_3')])
-            if len(left_3|right_3) < 100:
+            if len(left_3|right_3) < 1000:
                 return 0
             else:
                 return len(left_3&right_3) / len(left_3|right_3)

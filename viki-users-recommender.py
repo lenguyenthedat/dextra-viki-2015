@@ -1,5 +1,5 @@
 from __future__ import division
-from sklearn.preprocessing import StandardScaler
+from sklearn.preprocessing import MinMaxScaler
 
 import pandas as pd
 import time
@@ -9,7 +9,7 @@ import os
 import datetime
 import math
 
-top_videos_limit = 10
+top_videos_limit = 100
 sim_features = ['sim_country', 'sim_language', 'sim_adult',
                 'sim_content_owner_id', 'sim_broadcast', 'sim_episode_count',
                 'sim_genres', 'sim_cast',
@@ -17,7 +17,7 @@ sim_features = ['sim_country', 'sim_language', 'sim_adult',
 weight_features = [3,3,5,
                    0,0,0,
                    5,5,
-                   1,5,45,95]
+                   1,5,25,25]
 weight_scores = [1,5,15]
 
 """ weight_scores:
@@ -58,7 +58,7 @@ def read_data():
     # Pre-process videos_matrix
     videos_matrix = videos_matrix[videos_matrix['video_id_left'] != videos_matrix['video_id_right']] # remove duplicates
     # Feature scaling:
-    scaler = StandardScaler()
+    scaler = MinMaxScaler()
     for col in sim_features:
         scaler.fit(list(videos_matrix[col]))
         videos_matrix[col] = scaler.transform(videos_matrix[col])
