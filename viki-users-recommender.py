@@ -9,15 +9,15 @@ import os
 import datetime
 import math
 
-top_videos_limit = 100
+top_videos_limit = 10
 sim_features = ['sim_country', 'sim_language', 'sim_adult',
                 'sim_content_owner_id', 'sim_broadcast', 'sim_episode_count',
                 'sim_genres', 'sim_cast',
-                'jaccard_1_3', 'jaccard_2_3', 'jaccard_3_3', 'svd']
+                'jaccard_1_3', 'jaccard_2_3', 'jaccard_3_3']
 weight_features = [3,3,5,
                    0,0,0,
                    5,5,
-                   1,5,25,25]
+                   1,5,45]
 weight_scores = [1,5,15]
 
 """ weight_scores:
@@ -74,7 +74,7 @@ def read_data():
     videos_matrix = videos_matrix.sort(['sim_combined'], ascending=False).groupby('video_id_left').head(5)
     videos_matrix = videos_matrix.drop(['sim_country', 'sim_language', 'sim_adult', 'sim_content_owner_id',
                                         'sim_broadcast', 'sim_season', 'sim_episode_count', 'sim_genres',
-                                        'sim_cast', 'jaccard_1_3', 'jaccard_2_3', 'jaccard_3_3', 'svd'],1)
+                                        'sim_cast', 'jaccard_1_3', 'jaccard_2_3', 'jaccard_3_3'],1)
     return (behaviors, users, videos, videos_matrix)
 
 def compute_videos_performance(behaviors, users, videos):

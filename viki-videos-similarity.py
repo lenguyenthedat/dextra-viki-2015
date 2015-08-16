@@ -7,23 +7,6 @@ import numpy as np
 import datetime
 import re
 
-# These are for SVD
-# Bash needed
-# rm first line
-# tail -n +2 "data/20150701094451-Behavior_training.csv" > data/behavior.csv
-# ml conversion
-# awk -F',' '{print $2","$3","$5}' data/behavior.csv > data/behavior-ml-score.csv # User / TV / Score
-# awk -F',' '{print $2","$3","$4}' data/behavior.csv > data/behavior-ml-ratio.csv # User / TV / Score
-# http://ocelma.net/software/python-recsys/build/html/quickstart.html (check last part)
-# http://tedlab.mit.edu/~dr/SVDLIBC/
-# http://tedlab.mit.edu/~dr/SVDLIBC/svdlibc.tgz
-# make
-# cp bin/svd /usr/local/bin/svd
-#https://github.com/ocelma/python-recsys
-import recsys.algorithm
-from recsys.algorithm.factorize import SVD
-from recsys.utils.svdlibc import SVDLIBC
-
 def read_data():
     """ Read and pre-process data
         >>> videos_matrix = read_data()
@@ -247,30 +230,6 @@ def jaccard_similarity(videos_matrix):
     videos_matrix['jaccard_3_3'] = videos_matrix.apply(jaccard_3_3, axis=1)
     return videos_matrix.drop(['user_id_left','user_id_right'],1)
 
-def svd(videos_matrix,preload):
-    """ Calculating SVD matrix for each pair of movies.
-    """
-    recsys.algorithm.VERBOSE = True
-    if preload:
-        svd = SVD(filename='./data/svd-all') # Loading already computed SVD model
-        print "SVD model preloaded"
-    else:
-        print "SVD model loading..."
-        svdlibc = SVDLIBC('./data/behavior-ml-score.csv')
-        svdlibc.to_sparse_matrix(sep=',', format={'col':0, 'row':1, 'value':2, 'ids': str})
-        k=100
-        svdlibc.compute(k)
-        svd = svdlibc.export()
-        svd.save_model('./data/svd-all', options={'k': k})    
-    def compute_svd(row):
-        try:
-            return svd.similarity(row['video_id_left'], row['video_id_right'])
-        except:
-            return 0
-    print "Update video matrix's svd column"
-    videos_matrix['svd'] = videos_matrix.apply(compute_svd, axis=1)
-    return videos_matrix
-
 def output_videos_matrix_to_csv(videos_matrix):
     videos_matrix.to_csv("./data/videos_similarity_matrix.csv", encoding='utf-8', index=False)
 
@@ -281,8 +240,6 @@ def main():
     videos_matrix = feature_similarity(videos_matrix)
     print "=> Calculating jaccard similarities - " + str(datetime.datetime.now())
     videos_matrix = jaccard_similarity(videos_matrix)
-    print "=> Calculating SVD similarities - " + str(datetime.datetime.now())
-    videos_matrix = svd(videos_matrix,preload=True)
     print "=> Output to csv - " + str(datetime.datetime.now())
     output_videos_matrix_to_csv(videos_matrix)
 

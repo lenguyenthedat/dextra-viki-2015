@@ -157,6 +157,13 @@ Submission history:
 118 submit-3-3-5-0-0-0-5-5-1-5-45-95-1-5-15-top-10-0.214475 # old params
 119 submit-3-3-5-0-0-0-5-5-1-5-45-0-1-5-15-top-10-0.21427
 120 submit-3-3-5-0-0-0-5-5-1-5-95-145-1-5-15-top-10-0.214474
+121 submit-3-3-5-0-0-0-5-5-1-5-45-95-1-5-15-top-10-0.212959
+122 submit-3-3-5-0-0-0-5-5-1-5-25-25-1-5-25-top-10-0.214205
+123 submit-3-3-5-0-0-0-5-5-1-5-45-95-1-5-15-top-10-minmax-0.209646
+124 submit-3-3-5-0-0-0-5-5-1-5-15-15-1-5-15-top-10-minmax-0.212232
+125 submit-3-3-5-0-0-0-5-5-1-5-10-10-1-5-15-top-10-minmax-0.209993
+126 submit-3-3-5-0-0-0-5-5-1-5-25-25-1-5-15-top-10-minmax-0.21306
+127 submit-3-3-5-0-0-0-5-5-1-5-45-1-5-15-top-10-no-svd-0.214074
 
 The reason why HOT VIDEOS dominated CF is because viki's homepage currently dominated by:
 - Top banner
@@ -167,3 +174,4 @@ The reason why HOT VIDEOS dominated CF is because viki's homepage currently domi
 TODO:
 - treat videos user watched differently based on the time he / she watched it
 - utilize ratio instead of score
+- limit top videos for sim calculatino before scaling
