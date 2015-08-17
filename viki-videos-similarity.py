@@ -6,6 +6,8 @@ import csv
 import numpy as np
 import datetime
 import re
+import warnings
+warnings.filterwarnings("ignore")
 
 def read_data():
     """ Read and pre-process data

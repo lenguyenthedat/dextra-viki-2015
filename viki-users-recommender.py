@@ -1,5 +1,5 @@
 from __future__ import division
-from sklearn.preprocessing import MinMaxScaler
+from sklearn.preprocessing import StandardScaler
 
 import pandas as pd
 import time
@@ -8,8 +8,10 @@ import numpy as np
 import os
 import datetime
 import math
+import warnings
+warnings.filterwarnings("ignore")
 
-top_videos_limit = 10
+top_videos_limit = 50
 sim_features = ['sim_country', 'sim_language', 'sim_adult',
                 'sim_content_owner_id', 'sim_broadcast', 'sim_episode_count',
                 'sim_genres', 'sim_cast',
@@ -18,7 +20,7 @@ weight_features = [3,3,5,
                    0,0,0,
                    5,5,
                    1,5,45]
-weight_scores = [1,5,15]
+weight_scores = [1,3,15]
 
 """ weight_scores:
 How important a video user watched affects his recommended videos
@@ -55,26 +57,6 @@ def read_data():
     videos = videos.reset_index(drop=True)
     # Remove unused columns
     behaviors = behaviors.drop(['date_hour','mv_ratio'], 1)
-    # Pre-process videos_matrix
-    videos_matrix = videos_matrix[videos_matrix['video_id_left'] != videos_matrix['video_id_right']] # remove duplicates
-    # Feature scaling:
-    scaler = MinMaxScaler()
-    for col in sim_features:
-        scaler.fit(list(videos_matrix[col]))
-        videos_matrix[col] = scaler.transform(videos_matrix[col])
-    def sim_combined(row):
-        score = 0
-        for i in range(0, len(sim_features)):
-            score += row[sim_features[i]]*weight_features[i]
-        return score
-    videos_matrix['sim_combined'] = videos_matrix.apply(sim_combined, axis=1)
-    # only take those with score > 0
-    videos_matrix = videos_matrix[videos_matrix['sim_combined'] > 0]
-    # Top 5 similar videos to each video - 5 should be enough since we are only recommending 3 videos per person
-    videos_matrix = videos_matrix.sort(['sim_combined'], ascending=False).groupby('video_id_left').head(5)
-    videos_matrix = videos_matrix.drop(['sim_country', 'sim_language', 'sim_adult', 'sim_content_owner_id',
-                                        'sim_broadcast', 'sim_season', 'sim_episode_count', 'sim_genres',
-                                        'sim_cast', 'jaccard_1_3', 'jaccard_2_3', 'jaccard_3_3'],1)
     return (behaviors, users, videos, videos_matrix)
 
 def compute_videos_performance(behaviors, users, videos):
@@ -139,17 +121,37 @@ def combined_scores(behaviors, users, videos_matrix,videos_performance):
         1  [TV266, TV248, TV239]        3
         2  [TV248, TV239, TV234]        4
     """
+    # remove videos not in `top_videos_limit`
+    best_videos_m = videos_performance.sort('hotness_m', ascending=False).video_id.tolist() # list of best_videos rank by hotness overall
+    best_videos_f = videos_performance.sort('hotness_f', ascending=False).video_id.tolist() # list of best_videos rank by hotness overall
+    best_videos_o = videos_performance.sort('hotness_o', ascending=False).video_id.tolist() # list of best_videos rank by hotness overall
+    videos_matrix = videos_matrix[[x in best_videos_m[:top_videos_limit] + \
+                                        best_videos_f[:top_videos_limit] + \
+                                        best_videos_o[:top_videos_limit] \
+                                   for x in videos_matrix['video_id_right']]]
+    # Remove duplicates  (left = right)
+    videos_matrix = videos_matrix[videos_matrix['video_id_left'] != videos_matrix['video_id_right']]
+    # Feature scaling:
+    scaler = StandardScaler(with_mean=False,with_std=True)
+    for col in sim_features:
+        scaler.fit(list(videos_matrix[col]))
+        videos_matrix[col] = scaler.transform(videos_matrix[col])
+    def sim_combined(row):
+        score = 0
+        for i in range(0, len(sim_features)):
+            score += row[sim_features[i]]*weight_features[i]
+        return score
+    videos_matrix['sim_combined'] = videos_matrix.apply(sim_combined, axis=1)
+    # only take those with score > 0
+    videos_matrix = videos_matrix[videos_matrix['sim_combined'] > 0]
+    # Top 5 similar videos to each video - 5 should be enough since we are only recommending 3 videos per person
+    videos_matrix = videos_matrix.sort(['sim_combined'], ascending=False).groupby('video_id_left').head(5)
+    videos_matrix = videos_matrix.drop(['sim_country', 'sim_language', 'sim_adult', 'sim_content_owner_id',
+                                        'sim_broadcast', 'sim_season', 'sim_episode_count', 'sim_genres',
+                                        'sim_cast', 'jaccard_1_3', 'jaccard_2_3', 'jaccard_3_3'],1)
     if videos_matrix.empty:
         user_history_videos_matrix = behaviors.reindex_axis(behaviors.columns.union(videos_matrix.columns), axis=1)
     else:
-        # remove videos not in `top_videos_limit`
-        best_videos_m = videos_performance.sort('hotness_m', ascending=False).video_id.tolist() # list of best_videos rank by hotness overall
-        best_videos_f = videos_performance.sort('hotness_f', ascending=False).video_id.tolist() # list of best_videos rank by hotness overall
-        best_videos_o = videos_performance.sort('hotness_o', ascending=False).video_id.tolist() # list of best_videos rank by hotness overall
-        videos_matrix = videos_matrix[[x in best_videos_m[:top_videos_limit] + \
-                                            best_videos_f[:top_videos_limit] + \
-                                            best_videos_o[:top_videos_limit] \
-                                       for x in videos_matrix['video_id_right']]]
         user_history_videos_matrix = pd.merge(behaviors, videos_matrix, left_on=['video_id'], right_on=['video_id_left'])
     def weighted_sim_combined(row): # to combine with each session score
         return weight_scores[row['score']-1] * row['sim_combined']
