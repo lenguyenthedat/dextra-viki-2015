@@ -15,11 +15,11 @@ top_videos_limit = 50
 sim_features = ['sim_country', 'sim_language', 'sim_adult',
                 'sim_content_owner_id', 'sim_broadcast', 'sim_episode_count',
                 'sim_genres', 'sim_cast',
-                'jaccard_1_3', 'jaccard_2_3', 'jaccard_3_3']
+                'jaccard_1_3', 'jaccard_2_3', 'jaccard_3_3', 'jaccard_high', 'sim_cosine_mv_ratio']
 weight_features = [3,3,5,
                    0,0,0,
                    5,5,
-                   1,5,45]
+                   0,0,15,15,45]
 weight_scores = [1,3,15]
 
 """ weight_scores:
@@ -148,7 +148,8 @@ def combined_scores(behaviors, users, videos_matrix,videos_performance):
     videos_matrix = videos_matrix.sort(['sim_combined'], ascending=False).groupby('video_id_left').head(5)
     videos_matrix = videos_matrix.drop(['sim_country', 'sim_language', 'sim_adult', 'sim_content_owner_id',
                                         'sim_broadcast', 'sim_season', 'sim_episode_count', 'sim_genres',
-                                        'sim_cast', 'jaccard_1_3', 'jaccard_2_3', 'jaccard_3_3'],1)
+                                        'sim_cast', 'jaccard_1_3', 'jaccard_2_3', 'jaccard_3_3',
+                                        'jaccard_high', 'sim_cosine_mv_ratio'],1)
     if videos_matrix.empty:
         user_history_videos_matrix = behaviors.reindex_axis(behaviors.columns.union(videos_matrix.columns), axis=1)
     else:
@@ -184,6 +185,8 @@ def combined_scores(behaviors, users, videos_matrix,videos_performance):
         except:
             return 0
     user_combined_scores['weighted_sim_combined'] = user_combined_scores.apply(weighted_sim_combined, axis=1)
+    # # Only take the top 70 percentile of CF best scorers by excluding those that has score less than 0.15*mean
+    # user_combined_scores = user_combined_scores[user_combined_scores.weighted_sim_combined > 0.15*user_combined_scores.weighted_sim_combined.mean()]
     user_combined_scores = user_combined_scores.sort(['weighted_sim_combined'], ascending=False).groupby('user_id').head(3)
     try:
         user_combined_scores = pd.DataFrame({ 'recommendations' : user_combined_scores.groupby('user_id').apply(lambda x: list(x.video_id_right))})
@@ -230,10 +233,7 @@ def processing_recommendations(user_combined_scores,behaviors,users,videos):
         return r1 +  [x for x in r2 if x not in r1]
     def recommendation(row):
         try:
-            if len(row['recommendations']) == 3: # If we have enough recommendations
-                rec = row['recommendations'][row['count'] % 3]
-            else: # welp, not enough
-                rec = merge(row['recommendations'],row['hot_videos_unwatched'])[row['count'] % 3]
+            rec = merge(row['recommendations'],row['hot_videos_unwatched'])[row['count'] % 3]
         except: # row['recommendations'] could be NaN
             try: # see if there is any `hot_videos_unwatched` available for the user
                 rec = row['hot_videos_unwatched'][row['count'] % 3]

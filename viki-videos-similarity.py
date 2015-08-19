@@ -9,6 +9,8 @@ import re
 import warnings
 warnings.filterwarnings("ignore")
 
+from sklearn.metrics.pairwise import cosine_similarity
+
 def read_data():
     """ Read and pre-process data
         >>> videos_matrix = read_data()
@@ -191,8 +193,19 @@ def jaccard_similarity(videos_matrix):
         1            0      0.00000
         2            0      0.00159
     """
-    print "=> Calculating Jaccard indexes #1-3"
-    print datetime.datetime.now()
+    print "Calculating Jaccard indexes for high scores - " + str(datetime.datetime.now())
+    def jaccard_high(row): # people who like or kind of like LEFT and like RIGHT
+        try:
+            left_23 = set([item for item in row['user_id_left'].split() if not item.endswith('_1')])
+            right_23 = set([item for item in row['user_id_right'].split() if not item.endswith('_1')])
+            if len(left_23|right_23) < 1000:
+                return 0
+            else:
+                return len(left_23&right_23) / len(left_23|right_23)
+        except:
+            return 0
+    videos_matrix['jaccard_high'] = videos_matrix.apply(jaccard_high, axis=1)
+    print "Calculating Jaccard indexes #1-3 - " + str(datetime.datetime.now())
     def jaccard_1_3(row): # people who do not like LEFT but like RIGHT
         try:
             left_1 = set([item for item in row['user_id_left'].split() if item.endswith('_1')])
@@ -204,8 +217,7 @@ def jaccard_similarity(videos_matrix):
         except:
             return 0
     videos_matrix['jaccard_1_3'] = videos_matrix.apply(jaccard_1_3, axis=1)
-    print "=> Calculating Jaccard indexes #2-3"
-    print datetime.datetime.now()
+    print "Calculating Jaccard indexes #2-3 - " + str(datetime.datetime.now())
     def jaccard_2_3(row): # people who kind of like LEFT and like RIGHT
         try:
             left_2 = set([item for item in row['user_id_left'].split() if item.endswith('_2')])
@@ -217,8 +229,7 @@ def jaccard_similarity(videos_matrix):
         except:
             return 0
     videos_matrix['jaccard_2_3'] = videos_matrix.apply(jaccard_2_3, axis=1)
-    print "=> Calculating Jaccard indexes #3-3"
-    print datetime.datetime.now()
+    print "Calculating Jaccard indexes #3-3 - " + str(datetime.datetime.now())
     def jaccard_3_3(row): # people who like LEFT and like RIGHT
         try:
             left_3 = set([item for item in row['user_id_left'].split() if item.endswith('_3')])
@@ -232,6 +243,30 @@ def jaccard_similarity(videos_matrix):
     videos_matrix['jaccard_3_3'] = videos_matrix.apply(jaccard_3_3, axis=1)
     return videos_matrix.drop(['user_id_left','user_id_right'],1)
 
+def cos_similarity(videos_matrix): # based on mv_ratio
+    behaviors = pd.read_csv('./data/20150701094451-Behavior_training.csv')
+    # user - video matrix
+    behaviors_wide = pd.pivot_table(behaviors, values=["mv_ratio"],
+                             index=["video_id", "user_id"],
+                             aggfunc=np.mean).unstack()
+    # any cells that are missing data (i.e. a user didn't buy a particular product)
+    # we're going to set to 0
+    behaviors_wide = behaviors_wide.fillna(0)
+    # this is the key. we're going to use cosine_similarity from scikit-learn
+    # to compute the distance between all beers
+    cosine_video_matrix = cosine_similarity(behaviors_wide)
+    # stuff the distance matrix into a dataframe so it's easier to operate on
+    cosine_video_matrix = pd.DataFrame(cosine_video_matrix, columns=behaviors_wide.index)
+    # give the indicies (equivalent to rownames in R) the name of the product id
+    cosine_video_matrix.index = cosine_video_matrix.columns
+    def sim_cosine_mv_ratio(row):
+        try:
+            return cosine_video_matrix[row['video_id_left']][row['video_id_right']]
+        except: # no data for row['video_id_left']
+            return 0
+    videos_matrix['sim_cosine_mv_ratio'] = videos_matrix.apply(sim_cosine_mv_ratio, axis=1)
+    return videos_matrix
+
 def output_videos_matrix_to_csv(videos_matrix):
     videos_matrix.to_csv("./data/videos_similarity_matrix.csv", encoding='utf-8', index=False)
 
@@ -240,6 +275,8 @@ def main():
     videos_matrix = read_data()
     print "=> Calculating feature similarities - " + str(datetime.datetime.now())
     videos_matrix = feature_similarity(videos_matrix)
+    print "=> Calculating cosine similarities - " + str(datetime.datetime.now())
+    videos_matrix = cos_similarity(videos_matrix)
     print "=> Calculating jaccard similarities - " + str(datetime.datetime.now())
     videos_matrix = jaccard_similarity(videos_matrix)
     print "=> Output to csv - " + str(datetime.datetime.now())
