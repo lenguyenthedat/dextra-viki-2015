@@ -16,8 +16,8 @@ This solution is 100% Python, below are a few libraries needed:
 
 # Collaborative Filtering (Jaccard Index) plus feature similarity
 
-    $ python viki-videos-similarity.py # Pre-procesing `#videos x #videos` matrix, roughly 1.5 hours
-    $ python viki-users-recommender.py # batch process - 20 mins
+    $ python viki-videos-similarity.py # Pre-procesing `#videos x #videos` matrix
+    $ python viki-users-recommender.py # batch process
 
 This is more practical since `#videos x #videos` matrix is much smaller.
 Weights can be set manually:
@@ -48,12 +48,19 @@ TODO:
 - utilize ratio instead of score
 - see if someone is into hot / fresh video or not
 - KNN: cosine similarity for user => top 10 similar user => recommend top videos user havent watched
+
 Tried implementing with cosinesimilarity - Killed 9
+
 Tried Sklearn KNN - took 5h ++
+
 Panns https://github.com/ryanrhymes/panns 2h++
+
 Trying Spotify's Annoy https://github.com/spotify/annoy : 20mins with 10 trees, 12mins with 100 trees.
+
 -> however it's taking too long to find k-NN for each users (more than 10s each to get a good enough result)
 
-Submission history (Only those that worth documented or created when I am not too lazy):
-----------------------------------------------------------------------------------------
+Submission history:
+-------------------
+(Only those that worth documented or created when I am not too lazy):
+
 https://github.com/lenguyenthedat/dextra-viki-2015/blob/master/submission_history.txt
