@@ -13,7 +13,7 @@ import math
 # Bash needed
 # rm first line
 # tail -n +2 "data/20150701094451-Behavior_training.csv" > data/behavior.csv
-# ml conversion 
+# ml conversion
 # awk -F',' '{print $2","$3","$5}' data/behavior.csv > data/behavior-ml-score.csv # User / TV / Score
 # awk -F',' '{print $2","$3","$4}' data/behavior.csv > data/behavior-ml-ratio.csv # User / TV / Score
 
@@ -134,7 +134,7 @@ def processing_recommendations(user_combined_scores,behaviors,users,videos):
     hot_videos_o = videos.sort('hotness_o', ascending=False).video_id.tolist()
     users_history = behaviors.groupby('user_id',as_index=False).agg(lambda x: ' '.join(x.video_id)).drop('score', 1)
     users_history = pd.merge(users_history,users, on='user_id', how='right')
-    def hot_videos_unwatched(row): 
+    def hot_videos_unwatched(row):
         if row['gender'] == 'm':
             hot_videos = hot_videos_m
         elif row['gender'] == 'f':
@@ -145,7 +145,7 @@ def processing_recommendations(user_combined_scores,behaviors,users,videos):
             watched = set([item for item in row['video_id'].split()])
             return [x  for x in hot_videos if x not in watched]
         except: # never watched anything
-            return hot_videos    
+            return hot_videos
     users_history['hot_videos_unwatched'] = users_history.apply(hot_videos_unwatched, axis=1)
     users_hot_videos = users_history.drop('video_id',1)
     # separated by '-1,DEXTRA' and '-2,DEXTRA' (removed, otherwise we can't use `row['count'] % 3` below)

@@ -1,7 +1,7 @@
 # Bash needed
 # rm first line
 # tail -n +2 "data/20150701094451-Behavior_training.csv" > data/behavior.csv
-# ml conversion 
+# ml conversion
 # awk -F',' '{gsub("TV", "", $3) ; gsub("-", "", $1) ; gsub("T", "", $1) ; print $2"::"$3"::"$5}' data/behavior.csv > data/behavior-ml.csv
 
 #!/usr/bin/python
@@ -171,15 +171,15 @@ data_file = pd.read_table(r'./data/behavior-ml.csv', sep = '::', header=None)
 
 users = np.unique(data_file[0])
 movies = np.unique(data_file[1])
- 
+
 number_of_rows = len(users)
 number_of_columns = len(movies)
 
 movie_indices, user_indices = {}, {}
- 
+
 for i in range(len(movies)):
     movie_indices[movies[i]] = i
-    
+
 for i in range(len(users)):
     user_indices[users[i]] = i
 
@@ -192,14 +192,14 @@ for line in data_file.values:
     u, i , r  = map(int,line)
     V[user_indices[u], movie_indices[i]] = r
 
-#as these operations consume a lot of time, it's better to save processed data 
+#as these operations consume a lot of time, it's better to save processed data
 with open('./data/viki.pickle', 'wb') as handle:
     pickle.dump(V, handle)
 
-#as these operations consume a lot of time, it's better to save processed data 
+#as these operations consume a lot of time, it's better to save processed data
 #gets SVD components from 10M matrix
 u,s, vt = svds(V, k = 500)
- 
+
 with open('./data/viki_svd_u.pickle', 'wb') as handle:
     pickle.dump(u, handle)
 with open('./data/viki_svd_s.pickle', 'wb') as handle:

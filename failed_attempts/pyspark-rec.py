@@ -6,12 +6,12 @@ complete_ratings_raw_data = sc.textFile(complete_ratings_file)
 
 # Parse
 complete_ratings_data = complete_ratings_raw_data.map(lambda line: line.split(",")).map(lambda tokens: (int(tokens[0]),int(tokens[1]),float(tokens[2]))).cache()
-    
+
 print "There are %s ratings in the complete dataset" % (complete_ratings_data.count())
 
 training_RDD, test_RDD = complete_ratings_data.randomSplit([7, 3], seed=0L)
 
-complete_model = ALS.train(training_RDD, best_rank, seed=seed, 
+complete_model = ALS.train(training_RDD, best_rank, seed=seed,
                            iterations=iterations, lambda_=regularization_parameter)
 
 test_for_predict_RDD = test_RDD.map(lambda x: (x[0], x[1]))
@@ -19,14 +19,14 @@ test_for_predict_RDD = test_RDD.map(lambda x: (x[0], x[1]))
 predictions = complete_model.predictAll(test_for_predict_RDD).map(lambda r: ((r[0], r[1]), r[2]))
 rates_and_preds = test_RDD.map(lambda r: ((int(r[0]), int(r[1])), float(r[2]))).join(predictions)
 error = math.sqrt(rates_and_preds.map(lambda r: (r[1][0] - r[1][1])**2).mean())
-    
+
 print 'For testing data the RMSE is %s' % (error)
 
 
 #
 new_user_unrated_movies_RDD = (complete_movies_data.filter(lambda x: x[1]!=new_user_ID)
                       .map(lambda x: (new_user_ID, x[0])))
-                      
+
 complete_model.predictAll(new_user_unrated_movies_RDD)
 
 

@@ -62,7 +62,7 @@ if __name__ == "__main__":
     # load personal ratings
     myRatings = loadRatings(sys.argv[2])
     myRatingsRDD = sc.parallelize(myRatings, 1)
-    
+
     # load ratings and movie titles
 
     movieLensHomeDir = sys.argv[1]
@@ -79,7 +79,7 @@ if __name__ == "__main__":
 
     print "Got %d ratings from %d users on %d movies." % (numRatings, numUsers, numMovies)
 
-    # split ratings into train (60%), validation (20%), and test (20%) based on the 
+    # split ratings into train (60%), validation (20%), and test (20%) based on the
     # last digit of the timestamp, add myRatings to train, and cache them
 
     # training, validation, test are all RDDs of (userId, movieId, rating)
