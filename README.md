@@ -3,10 +3,14 @@ viki-challenge
 ![img](http://i.imgur.com/LWnqxzM.png)
 
 http://www.dextra.sg/rakuten-viki-global-tv-recommender-challenge/
+
 https://challenges.dextra.sg/challenge/43
 
 # Some preliminary analysis:
 https://public.tableau.com/profile/le.nguyen.the.dat#!/vizhome/Rakuten-VikiDataScienceChallenge2015/Rakuten-VikiDataScienceChallenge2015
+
+# Presentation deck:
+https://speakerdeck.com/lenguyenthedat/rakuten-viki-data-challenge-solution
 
 # Requirements:
 This solution is 100% Python, below are a few libraries needed:
