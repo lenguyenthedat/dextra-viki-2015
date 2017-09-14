@@ -45,7 +45,7 @@ The reason why HOT VIDEOS dominated CF is because viki's homepage currently domi
 - Top banner
 - Popular show
 - Top Drama
-- # Gender filter for male / female
+- Gender filter for male / female
 
 TODO:
 -----
